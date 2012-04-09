@@ -78,6 +78,42 @@ public class Player {
 		}
 	}
 	
+	/* Returns whether the player has a set of three identical cards.
+	 */
+	public boolean hasTriplet(){
+		int ones=0, twos=0, threes=0;
+		Iterator<Integer> i = cards.iterator();
+		while(i.hasNext()){
+			switch(i.next()){
+			case 1:
+				ones++; break;
+			case 2: 
+				twos++; break;
+			case 3: 
+				threes++; break;
+			}
+		}
+		return (ones >= 3 || twos >= 3 || threes >= 3);
+	}
+	
+	/* Returns whether the player has one of each type of card.
+	 */
+	public boolean hasMixedSet(){
+		int ones=0, twos=0, threes=0;
+		Iterator<Integer> i = cards.iterator();
+		while(i.hasNext()){
+			switch(i.next()){
+			case 1:
+				ones++; break;
+			case 2: 
+				twos++; break;
+			case 3: 
+				threes++; break;
+			}
+		}
+		return (ones > 0 && twos > 0 && threes > 0);
+	}
+	
 	/*Asks the player if they want to turn in cards, although I (Trey) don't think this method should be here. It would
 	 * probably be better in GameManager.
 	 */
@@ -91,26 +127,36 @@ public class Player {
 	}
 	
 	
-	/*Turns in cards and returns the number of reinforcements gotten. It asks the GameManager what the current reward for
+	/* Turns in cards and returns the number of reinforcements gotten. It asks the GameManager what the current reward for
 	 * turning in cards. Possibly handle the user choosing which combination to turn in if more than one is possible.
-	 * 
 	 */
 	public int turnInCards(){
 		return 0;//TODO
 	}
 	
 	/*Helper method for turnInCards()
-	 * 
 	 */
 	private int numReinforcements(){
 		return 0;//TODO
 	}
 	
+	/* This method comprises the entire process of placing reinforcements.
+	 */
+	public void reinforceProcess(){
+		//TODO
+	}
+	
 	/*This method returns a jagged matrix representing where the user wants to place reinforcements
-	 * 
 	 */
 	public ArrayList<ArrayList<Integer>> askReinforcemnts(){//TODO
 		return null;
+	}
+	
+	/*
+	 * Returns a territory in which to place a reinforcement at the beginning of the game.
+	 */
+	public Territory askInitReinforce(){
+		return null; //TODO
 	}
 	
 	//Places a single troop in a territory t.
@@ -123,9 +169,9 @@ public class Player {
 		//TODO
 	}
 	
-	//This method encompasses the entire attack procedure.
-	public void attack(){
-		//TODO
+	//This method encompasses the entire attack procedure. Returns whether the player won at least one battle.
+	public boolean attackProcess(){
+		return false;//TODO
 	}
 	
 	//The method returns whether or not a player has the ability to attack.
@@ -133,14 +179,14 @@ public class Player {
 		return false;//TODO
 	}
 	
-	//attack a specific territory from another territory with a certain number of troops
-	public void attack(Territory from, Territory to, int troops){
-		//TODO
+	//attack a specific territory from another territory with a certain number of troops. Returns whether the player won.
+	public boolean attack(Territory from, Territory to, int troops){
+		return false;//TODO
 	}
 	
 	//Encompasses the entire moving procedure
-	public void move(){
-		//TODO
+	public void moveProcess(){//TODO
+		
 	}
 	
 	//returns whether or not the player has the ability to move troops

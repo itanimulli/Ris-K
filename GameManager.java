@@ -68,12 +68,27 @@ public class GameManager {
 	 *set hasConquered to true. Move and collect card if the player hasConquered. Go to next player.
 	 */
 	public void play(){
-		//TODO
+		curPlayer = (int)(players.size()*Math.random());
+		Player p = players.get(curPlayer);
+		for(int i=0; i<board.size(); i++){
+			p.placeReinforcement(p.askInitReinforce());
+		}
+		while(hasWon() == -1){
+			p = players.get(curPlayer);
+			int a = players.size();
+			p.reinforceProcess();
+			if(p.attackProcess()) p.collectCard();
+			if(a > players.size() && p.getCards().size() > 4)
+				p.turnInCards();
+			p.moveProcess();
+			nextPlayer();
+		}
 	}
 	
 	//Increments the current player
 	public Player nextPlayer(){
 		curPlayer++;
+		curPlayer %= players.size();
 		return players.get(curPlayer);
 	}
 }
