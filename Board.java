@@ -15,6 +15,18 @@ public class Board {
 		return continents;
 	}
 	
+	public List<Territory> getTerritories() {
+		ArrayList<Territory> tList = new ArrayList<Territory>();
+		
+		Iterator<Territory> iter = territories.iterator();
+		
+		while(iter.hasNext()) {
+			tList.add(iter.next());
+		}
+		
+		return tList;
+	}
+	
 	public List<Territory> getConnections(Territory t) {
 		//Returns a list of all territories connected to the given territory
 		List<Territory> neighbors = new LinkedList<Territory>();
