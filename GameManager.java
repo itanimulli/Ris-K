@@ -13,7 +13,7 @@ public class GameManager {
 	
 	public GameManager(){
 		players = new ArrayList<Player>();
-		board = new Board();
+		board = BoardImporter.makeBoard("board.txt");
 		curPlayer = 0;
 	}
 
