@@ -166,8 +166,9 @@ public abstract class Player {
 	public abstract HashMap<Territory, Integer> reinforceProcess();
 
 	/*This method returns a list representing where the user wants to place reinforcements
+	 * Helper method for reinforceProcess()
 	 */
-	protected abstract ArrayList<Territory> askReinforcements();
+	protected abstract ArrayList<Territory> askReinforcements(int numReinforcements);
 
 	/*
 	 * Returns a territory in which to place a reinforcement at the beginning of the game.

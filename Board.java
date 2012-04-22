@@ -11,6 +11,16 @@ public class Board {
 		continents = cs;
 	}
 	
+	public Territory get(String name) {
+		Iterator<Territory> iter = territories.iterator();
+		while(iter.hasNext()) {
+			Territory t = iter.next();
+			if (t.getName().equalsIgnoreCase(name)) return t;
+		}
+		
+		return null;
+	}
+	
 	public List<Continent> getContinents() {
 		return continents;
 	}
