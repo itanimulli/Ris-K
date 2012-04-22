@@ -9,52 +9,53 @@
 import java.util.*;
 import java.util.Collections;
 
-public class Player {
+public abstract class Player {
 
-	private ArrayList<ArrayList<Integer>> territories;
-	private ArrayList<Integer> cards;
-	private boolean hasConquered;
+	protected ArrayList<Territory> territories;
+	protected ArrayList<Integer> cards;
+	protected boolean hasConquered;
+	protected GameManager manager;
 
 	//Constructor
-	public Player(){
-		territories = new ArrayList<ArrayList<Integer>>();
+	public Player(GameManager gm){
+		territories = new ArrayList<Territory>();
 		cards = new ArrayList<Integer>();
 		hasConquered = false;
+		manager = gm;
 	}
 
-	public ArrayList<ArrayList<Integer>> getTerritories() {
+	public ArrayList<Territory> getTerritories() {
 		return territories;
 	}
 
-	public void setTerritories(ArrayList<ArrayList<Integer>> territories) {
+	public void setTerritories(ArrayList<Territory> territories) {
 		this.territories = territories;
 	}
 
-	public ArrayList<Integer> getCards() {
+	protected ArrayList<Integer> getCards() {
 		return cards;
 	}
 
-	public void setCards(ArrayList<Integer> cards) {
+	protected void setCards(ArrayList<Integer> cards) {
 		this.cards = cards;
 	}
+	
+	public int getCardCount() {
+		return cards.size();
+	}
 
-	public boolean isHasConquered() {
+	protected boolean hasConquered() {
 		return hasConquered;
 	}
 
-	public void setHasConquered(boolean hasConquered) {
+	protected void setHasConquered(boolean hasConquered) {
 		this.hasConquered = hasConquered;
 	}
-
-	public int troopsAt(Territory T){
-		return territories.get(0).get(0);//TODO
-	}
-
 
 	/*This method returns true if the player has a complete set of cards and false if they don't.
 	 *A complete set is 3 of any one card or 1 of all three cards. 
 	 */
-	public boolean hasCardSet(){
+	protected boolean hasCardSet(){
 		Iterator<Integer> i = cards.iterator();
 		int ones = 0;
 		int twos = 0;
@@ -81,7 +82,7 @@ public class Player {
 
 	/* Returns whether the player has a set of three identical cards.
 	 */
-	public boolean hasTriplet(){
+	protected boolean hasTriplet(){
 		int ones=0, twos=0, threes=0;
 		Iterator<Integer> i = cards.iterator();
 		while(i.hasNext()){
@@ -99,7 +100,7 @@ public class Player {
 
 	/* Returns whether the player has one of each type of card.
 	 */
-	public boolean hasMixedSet(){
+	protected boolean hasMixedSet(){
 		int ones=0, twos=0, threes=0;
 		Iterator<Integer> i = cards.iterator();
 		while(i.hasNext()){
@@ -142,23 +143,18 @@ public class Player {
 	}
 
 	/* This method comprises the entire process of placing reinforcements.
+	 * Returns a hashmap giving the number of troops added to each territory.
 	 */
-	public void reinforceProcess(){
-		//TODO
-	}
+	public abstract HashMap<Territory, Integer> reinforceProcess();
 
-	/*This method returns a jagged matrix representing where the user wants to place reinforcements
+	/*This method returns a list representing where the user wants to place reinforcements
 	 */
-	public ArrayList<ArrayList<Integer>> askReinforcemnts(){//TODO
-		return null;
-	}
+	protected abstract ArrayList<Territory> askReinforcements();
 
 	/*
 	 * Returns a territory in which to place a reinforcement at the beginning of the game.
 	 */
-	public Territory askInitReinforce(){
-		return null; //TODO
-	}
+	public abstract Territory askInitReinforce();
 
 	//Places a single troop in a territory t.
 	public void placeReinforcement(Territory t){
@@ -171,9 +167,7 @@ public class Player {
 	}
 
 	//This method encompasses the entire attack procedure. Returns whether the player won at least one battle.
-	public boolean attackProcess(){
-		return false;//TODO
-	}
+	public abstract boolean attackProcess();
 
 	//The method returns whether or not a player has the ability to attack.
 	public boolean canAttack(){
@@ -181,7 +175,7 @@ public class Player {
 	}
 
 	//attack a specific territory from another territory with a certain number of troops. Returns whether the player won.
-	public boolean attack(Territory from, Territory to, int troops){
+	protected boolean attack(Territory from, Territory to, int troops){
 		Random r = new Random();
 		int attackerLoss = 0, defenderLoss = 0;
 		int[] attackerRolls = new int[troops];
@@ -220,9 +214,7 @@ public class Player {
 	}
 
 	//Encompasses the entire moving procedure
-	public void moveProcess(){//TODO
-
-	}
+	public abstract void moveProcess();
 
 	//returns whether or not the player has the ability to move troops
 	public boolean canMove(){

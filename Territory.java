@@ -3,6 +3,7 @@ public class Territory {
 	
 	private String name;
 	private int troops;
+	private Player owner;
 	
 	public Territory (String n){
 		name = n;
@@ -38,6 +39,14 @@ public class Territory {
 
 	public void setTroops(int troops) {
 		this.troops = troops;
+	}
+	
+	public Player getOwner() {
+		return owner;
+	}
+	
+	public void setOwner(Player p) {
+		owner = p;
 	}
 	
 }
