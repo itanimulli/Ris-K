@@ -49,4 +49,8 @@ public class Territory {
 		owner = p;
 	}
 	
+	public String toString() {
+		return name;
+	}
+	
 }

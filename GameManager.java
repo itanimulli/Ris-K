@@ -15,11 +15,11 @@ public class GameManager {
 	
 	public static final int[] bonuses = {};
 	
-	public GameManager(){
+	public GameManager(PrintStream output) {
 		players = new ArrayList<Player>();
 		board = BoardImporter.makeBoard("board.txt");
 		curPlayer = 0;
-		console = System.out;
+		console = output;
 	}
 
 	public ArrayList<Player> getPlayers() {
@@ -64,8 +64,10 @@ public class GameManager {
 		curPlayer = (int)(players.size()*Math.random());
 		for(int i=0; i<board.getTerritories().size(); i++){
 			Player p = nextPlayer();
+			console.println("It's "+p+"'s turn to claim a territory.");
 			Territory reinforcedTerritory = p.askInitReinforce();
-			p.placeReinforcement(reinforcedTerritory);
+			reinforcedTerritory.setOwner(p);
+			
 			console.println(p + " has placed a troop in " + reinforcedTerritory);
 		}
 		while(hasWon() == null){

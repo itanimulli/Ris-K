@@ -44,5 +44,9 @@ public class Continent {
 		}
 		return false;
 	}
+	
+	public String toString() {
+		return name;
+	}
 
 }

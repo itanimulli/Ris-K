@@ -15,6 +15,7 @@ public abstract class Player {
 	protected ArrayList<Integer> cards;
 	protected boolean hasConquered;
 	protected GameManager manager;
+	protected String name;
 
 	//Constructor
 	public Player(GameManager gm){
@@ -22,6 +23,23 @@ public abstract class Player {
 		cards = new ArrayList<Integer>();
 		hasConquered = false;
 		manager = gm;
+		name = "Unnamed Player";
+	}
+	
+	public void addTerritory(Territory t) {
+		territories.add(t);
+	}
+	
+	public boolean remove(Territory t) {
+		return territories.remove(t);
+	}
+	
+	public void setName(String newName) {
+		name = newName;
+	}
+	
+	public String getName() {
+		return name;
 	}
 
 	public ArrayList<Territory> getTerritories() {
@@ -235,5 +253,9 @@ public abstract class Player {
 	//adds all the cards that belong to a player to another players list. To be called when a player is defeated.
 	public void collectCards(Player p){
 		cards.addAll(p.getCards());
+	}
+	
+	public String toString() {
+		return name;
 	}
 }
