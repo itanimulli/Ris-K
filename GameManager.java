@@ -6,10 +6,14 @@ import java.io.PrintStream;
 import java.util.*;
 
 public class GameManager {
+	
+	public final static int CHOOSING = -2, FORTIFYING = -1, TURNING_IN = 0, REINFORCING = 1, ATTACKING = 2, MOVING = 3, COLLECTING = 4; 
+	
 	private ArrayList<Player> players;
 	private int curPlayer;
 	private Board board;
 	private int currBonusInd = 0;
+	private int state = 0;
 	
 	private PrintStream console;
 	
@@ -20,6 +24,7 @@ public class GameManager {
 		board = BoardImporter.makeBoard("board.txt");
 		curPlayer = 0;
 		console = output;
+		state = CHOOSING;
 	}
 
 	public ArrayList<Player> getPlayers() {
@@ -28,6 +33,10 @@ public class GameManager {
 
 	public void setPlayers(ArrayList<Player> players) {
 		this.players = players;
+	}
+	
+	public void addPlayer(Player p){
+		players.add(p);
 	}
 
 	public int getCurPlayer() {
@@ -46,6 +55,13 @@ public class GameManager {
 		this.board = board;
 	}
 	
+	public int getState(){
+		return state;
+	}
+	
+	public void setState(int newState){
+		state = newState;
+	}
 	/*Returns the player that won, and null otherwise
 	 */
 	public Player hasWon(){

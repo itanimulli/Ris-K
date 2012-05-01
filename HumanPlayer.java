@@ -3,9 +3,11 @@ import java.util.*;
 public class HumanPlayer extends Player {
 	
 	Scanner in;
+	RiskGui rg;
 	
-	public HumanPlayer(GameManager gm) {
+	public HumanPlayer(GameManager gm, RiskGui rg) {
 		super(gm);
+		this.rg = rg;
 		in = new Scanner(System.in);
 	}
 
