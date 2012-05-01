@@ -9,7 +9,7 @@ public class BoardChecker {
 		
 		List<Continent> cs = b.getContinents();
 		
-		System.out.println("\n==Board==");		
+		System.out.println("\n==Board==");
 		for(int i=0; i<cs.size(); i++) {
 			System.out.print(cs.get(i).getName()+": ");
 			for(int k=0; k<cs.get(i).getTerritories().size(); k++) {

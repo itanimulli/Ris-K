@@ -1,12 +1,15 @@
+import java.awt.*;
+import java.awt.geom.*;
 import java.io.*;
 import java.util.*;
 import structure5.GraphMatrixUndirected;
 
 public class BoardImporter {
 	
+	static ArrayList<Territory> territories = new ArrayList<Territory>();
+	
 	public static Board makeBoard(String filename) {
 		ArrayList<Continent> continents = new ArrayList<Continent>();
-		ArrayList<Territory> territories = new ArrayList<Territory>();
 		ArrayList<ArrayList<Territory>> edges = new ArrayList<ArrayList<Territory>>();
 		Board finalBoard = null;
 		
@@ -82,7 +85,6 @@ public class BoardImporter {
 				Territory firstTerritory = edges.get(i).get(0);
 				Territory secondTerritory = edges.get(i).get(1);
 				graph.addEdge(firstTerritory, secondTerritory, firstTerritory.getName()+"-"+secondTerritory.getName());
-				System.out.println("Added edge '"+firstTerritory.getName()+"-"+secondTerritory.getName()+"'");
 			}
 			
 			finalBoard = new Board(graph, continents);
@@ -94,6 +96,31 @@ public class BoardImporter {
 		
 		return finalBoard;
 		
+	}
+	
+	public static ArrayList<Point2D.Double> readCoords(String filename){
+		ArrayList<Point2D.Double> coords = new ArrayList<Point2D.Double>();
+		String coord = "";
+		int currentLine = 0;
+		try{
+			BufferedReader inputStream = new BufferedReader(new FileReader(filename));
+			Scanner s = new Scanner(inputStream);
+			
+			while(s.hasNext()){
+				currentLine++;
+				coord = s.nextLine();
+				String[] thePoint = coord.split(" ");
+				Point2D.Double p = new Point2D.Double(Double.parseDouble(thePoint[0]), Double.parseDouble(thePoint[1]));
+				coords.add(p);
+			}
+		}catch(Exception e){
+			System.out.println("Corrupt line: " + coord + ": line " + currentLine);
+		}
+		return coords;
+	}
+	
+	public static ArrayList<Territory> getTerritories(){
+		return territories;
 	}
 
 }
