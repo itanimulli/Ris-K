@@ -75,6 +75,10 @@ public class HumanPlayer extends Player {
 		}
 		return chosenTerritory;
 	}
+	
+	public Territory fortifyProcess() {
+		return territories.get(0);
+	}
 
 	public boolean attackProcess() {
 		boolean attack = true;
@@ -109,7 +113,7 @@ public class HumanPlayer extends Player {
 							} else if (troops > attemptedTerritory.getTroops()-1) {
 								System.out.println("You do not have that many troops to attack with.");
 							} else if (troops != 0) {
-								if (attack(attemptedTerritory, attemptedTarget, troops)) hasConquered = true;
+								if (rg.getGM().attack(attemptedTerritory, attemptedTarget, troops)) hasConquered = true;
 							}
 						}
 					}

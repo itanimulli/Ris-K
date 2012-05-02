@@ -7,7 +7,6 @@
  * 
  */
 import java.util.*;
-import java.util.Collections;
 
 public abstract class Player {
 
@@ -16,6 +15,8 @@ public abstract class Player {
 	protected boolean hasConquered;
 	protected GameManager manager;
 	protected String name;
+	protected int remainingReinforcements;
+	protected boolean resetSwitch;
 
 	//Constructor
 	public Player(GameManager gm){
@@ -24,9 +25,12 @@ public abstract class Player {
 		hasConquered = false;
 		manager = gm;
 		name = "Unnamed Player";
+		remainingReinforcements = 0;
+		resetSwitch = true;
 	}
 	
 	public void addTerritory(Territory t) {
+		t.setOwner(this);
 		territories.add(t);
 	}
 	
@@ -176,60 +180,30 @@ public abstract class Player {
 	public abstract Territory askInitReinforce();
 
 	//Places a single troop in a territory t.
-	public void placeReinforcement(Territory t){
+	public boolean placeReinforcement(Territory t){
+		if (remainingReinforcements < 1) return false;
 		t.reinforce();
+		remainingReinforcements--;
+		return true;
 	}
 
 	//Places multiple troops in a territory t.
-	public void placeReinforcements(Territory t, int num){
+	public boolean placeReinforcements(Territory t, int num){
+		if (num < 1) return false;
+		if (remainingReinforcements < num) return false;
 		t.reinforce(num);
+		remainingReinforcements -= num;
+		return true;
 	}
 
-	//This method encompasses the entire attack procedure. Returns whether the player won at least one battle.
-	public abstract boolean attackProcess();
+	//This method encompasses the attack decision procedure.
+	//Returns an array of the attacking and target territories and number of attacking troops, or null to skip.
+	//{ AttackingTerritory, DefendingTerritory, NumTroops }
+	public abstract Object[] attackProcess();
 
 	//The method returns whether or not a player has the ability to attack.
 	public boolean canAttack(){
 		return false;//TODO
-	}
-
-	//attack a specific territory from another territory with a certain number of troops. Returns whether the player won.
-	protected boolean attack(Territory from, Territory to, int troops){
-		Random r = new Random();
-		int attackerLoss = 0, defenderLoss = 0;
-		int[] attackerRolls = new int[troops];
-		int[] defenderRolls = null;
-		if(to.getTroops() ==1){
-			defenderRolls = new int[1];
-		}
-		else if (to.getTroops() > 1){
-			defenderRolls = new int[2];
-		}
-		for(int i = 0; i < troops; i++){
-			attackerRolls[i] = r.nextInt(5) + 1;
-		}
-		for(int j = 0; j < defenderRolls.length; j++){
-			defenderRolls[j] = r.nextInt(5) + 1;
-		}
-		Arrays.sort(attackerRolls);
-		Arrays.sort(defenderRolls);
-		for(int n = 1; n <= defenderRolls.length; n++){
-			if(attackerRolls[attackerRolls.length - n] > defenderRolls[defenderRolls.length - n]){
-				defenderLoss++;
-			}
-			else{
-				attackerLoss++;
-			}
-		}
-		
-		from.remove(attackerLoss);
-		to.remove(defenderLoss);
-		if(to.getTroops() < 1){
-			return true;
-		}
-		else{
-			return false;
-		}
 	}
 
 	//Encompasses the entire moving procedure
@@ -258,5 +232,28 @@ public abstract class Player {
 	
 	public String toString() {
 		return name;
+	}
+	
+	public int numTroops() {
+		int troops = 0;
+		for(int i=0; i<territories.size(); i++) {
+			troops += territories.get(i).getTroops();
+		}
+		return troops;
+	}
+	
+	public abstract Territory fortifyProcess();
+	
+	public void resetSwitch(boolean value) {
+		resetSwitch = value;
+	}
+	
+	public boolean resetSwitch() {
+		return resetSwitch;
+	}
+	
+	public void reset() {
+		remainingReinforcements += (int)Math.max(Math.floor(territories.size()/4), 3);
+		hasConquered = false;
 	}
 }

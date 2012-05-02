@@ -78,25 +78,28 @@ public class GameManager {
 	 */
 	public void play(){
 		curPlayer = (int)(players.size()*Math.random());
-		for(int i=0; i<board.getTerritories().size(); i++){
+		while(getState() == CHOOSING){
 			Player p = nextPlayer();
-			console.println("It's "+p+"'s turn to claim a territory.");
+			message("It's "+p+"'s turn to claim a territory.");
 			Territory reinforcedTerritory = p.askInitReinforce();
-			reinforcedTerritory.setOwner(p);
-			
-			console.println(p + " has placed a troop in " + reinforcedTerritory);
+			doInitReinforce(p, reinforcedTerritory);
 		}
 		while(hasWon() == null){
 			Player p = nextPlayer();
-			console.println("It's "+p+"'s turn!");
+			message("It's "+p+"'s turn!");
 			int a = players.size();
 			p.reinforceProcess();
-			if(p.attackProcess()) {
+			p.setHasConquered(false);
+			Object[] attack;
+			while ((attack = p.attackProcess()) != null) {
+				processAttack(p, attack);
+			}
+			if(p.hasConquered()) {
 				p.collectCard();
-				console.println(p+" conquered this turn, so they get a card.");
+				message(p+" conquered this turn, so they get a card.");
 			}
 			if(a > players.size() && p.getCardCount() > 4) {
-				console.println(p+" has too many cards, and is forced to turn in 3.");
+				message(p+" has too many cards, and is forced to turn in 3.");
 				p.turnInCards();
 			}
 			p.moveProcess();
@@ -109,4 +112,87 @@ public class GameManager {
 		curPlayer %= players.size();
 		return players.get(curPlayer);
 	}
+	
+	public void doInitReinforce(Player p, Territory t) {
+		p.addTerritory(t);
+		t.reinforce();
+		message(p + " has placed a troop in " + t);
+		for(int i=0; i<board.getTerritories().size(); i++) {
+			if (board.getTerritories().get(i).getOwner() == null) return;
+		}
+		setState(FORTIFYING);
+	}
+	
+	public int remainingFortifications(Player p) {
+		int startTroops = 50 - 5*players.size();
+		return startTroops - p.numTroops();
+	}
+	
+	public void message(String message) {
+		console.println(message);
+	}
+	
+	//attack a specific territory from another territory with a certain number of troops. Returns whether the attacker won.
+	public static boolean attack(Territory from, Territory to, int troops){
+		Random r = new Random();
+		int attackerLoss = 0, defenderLoss = 0;
+		int[] attackerRolls = new int[troops];
+		int[] defenderRolls = null;
+		if(to.getTroops() ==1){
+			defenderRolls = new int[1];
+		}
+		else if (to.getTroops() > 1){
+			defenderRolls = new int[2];
+		}
+		for(int i = 0; i < troops; i++){
+			attackerRolls[i] = r.nextInt(5) + 1;
+		}
+		for(int j = 0; j < defenderRolls.length; j++){
+			defenderRolls[j] = r.nextInt(5) + 1;
+		}
+		Arrays.sort(attackerRolls);
+		Arrays.sort(defenderRolls);
+		for(int n = 1; n <= defenderRolls.length; n++){
+			if(attackerRolls[attackerRolls.length - n] > defenderRolls[defenderRolls.length - n]){
+				defenderLoss++;
+			}
+			else{
+				attackerLoss++;
+			}
+		}
+		
+		from.remove(attackerLoss);
+		to.remove(defenderLoss);
+		if(to.getTroops() < 1){
+			int remainingAttackers = troops - attackerLoss;
+			from.getOwner().addTerritory(to);
+			from.getOwner().move(from, to, remainingAttackers);
+			return true;
+		}
+		else{
+			return false;
+		}
+	}
+	
+	public void processAttack(Player p, Object[] attack) {
+		Territory attackingTerritory = (Territory)attack[0];
+		Territory defendingTerritory = (Territory)attack[1];
+		int attackingTroops = (Integer)attack[2];
+		int attackerInitial = attackingTerritory.getTroops();
+		int defenderInitial = defendingTerritory.getTroops();
+		boolean result = attack(attackingTerritory, defendingTerritory, attackingTroops);
+		String resultString;
+		if (result) resultString = "won"; else resultString = "lost";
+		int attackerLoss = attackerInitial-attackingTerritory.getTroops();
+		int defenderLoss = defenderInitial-defendingTerritory.getTroops();
+		message(p + " attacked " + defendingTerritory + " from " + attackingTerritory + " with  " + attackingTroops
+				+ " troops and " + resultString + "! (Attacker losses: " + attackerLoss + ", Defender Losses: "
+				+ defenderLoss + ")");
+		if (result) p.setHasConquered(true);
+	}
+	
+	public void randomPlayer() {
+		curPlayer = (int)(players.size()*Math.random());
+	}
+	
 }
