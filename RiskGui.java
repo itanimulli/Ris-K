@@ -67,7 +67,7 @@ public class RiskGui extends JFrame {
 				player = new HumanPlayer(rg.getGM(), rg);
 				player.setName(playerName);
 			}else{
-				player = new AdvancedAI(rg.getGM());
+				player = new EasyAI(rg.getGM());
 				player.setName(playerName);
 			}
 			gm.addPlayer(player);//add the player to the game manager
@@ -147,10 +147,12 @@ public class RiskGui extends JFrame {
 						Territory currentTerritory = currentPlayer.getTerritories().get(i);
 						if (reinforceMap.containsKey(currentTerritory) && reinforceMap.get(currentTerritory) > 0) {
 							int numTroops = reinforceMap.get(currentTerritory);
-							currentTerritory.reinforce(numTroops);
+							currentPlayer.placeReinforcements(currentTerritory, numTroops);
 							gm.message(currentPlayer + " has placed " + numTroops + " troops in " + currentTerritory);
+							rg.rp.updateTerritory(currentTerritory);
 						}
 					}
+					currentPlayer.resetSwitch(true);
 					gm.setState(GameManager.ATTACKING);
 				} else {
 					while (rg.chosenTerritory == null || rg.chosenTerritory.getOwner() != currentPlayer) {
@@ -183,7 +185,14 @@ public class RiskGui extends JFrame {
 				if (currentPlayer.getClass().getSuperclass().getName().endsWith("ComputerPlayer")) {
 					Object[] attack;
 					while ((attack = currentPlayer.attackProcess()) != null) {
-						gm.processAttack(currentPlayer, attack);
+						boolean wantsToContinue = true;
+						int remaining;
+						while (wantsToContinue && (remaining = gm.processAttack(currentPlayer, attack)) != 0) {
+							wantsToContinue = currentPlayer.continueAttack(remaining, attack);
+							attack[2] = remaining;
+						}
+						rg.rp.updateTerritory((Territory)attack[0]);
+						rg.rp.updateTerritory((Territory)attack[1]);
 					}
 					gm.setState(GameManager.MOVING);
 				} else {
@@ -249,9 +258,18 @@ public class RiskGui extends JFrame {
 									} else if (numTroops > attackTerritory.getTroops()+1) {
 										JOptionPane.showMessageDialog(rg, "You do not have enough troops to perform that attack.");
 									} else if (numTroops > 0) {
-										numTroops = Math.min(numTroops, 3);
 										Object[] attack = {attackTerritory, defendTerritory, numTroops};
-										gm.processAttack(currentPlayer, attack);
+										boolean wantsToContinue = true;
+										int remaining;
+										while (wantsToContinue && (remaining = gm.processAttack(currentPlayer, attack)) != 0) {
+											rg.rp.updateTerritory(attackTerritory);
+											rg.rp.updateTerritory(defendTerritory);
+											wantsToContinue = (JOptionPane.showConfirmDialog(rg, "Continue Attacking?\n"
+													+ "Remaining Attacking Troops: "+remaining
+													+ "\nRemaining Defending Troops: "+defendTerritory.getTroops(),
+													"Continue Attack?", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION);
+											attack[2] = remaining;
+										}
 										rg.rp.updateTerritory(attackTerritory);
 										rg.rp.updateTerritory(defendTerritory);
 									}
@@ -269,6 +287,11 @@ public class RiskGui extends JFrame {
 				rg.rp.getPrompt().setText(currentPlayer + "'s turn, movement phase");
 				if (currentPlayer.getClass().getSuperclass().getName().endsWith("ComputerPlayer")) {
 					Object[] move = currentPlayer.moveProcess();
+					if (move == null) {
+						gm.nextPlayer();
+						gm.setState(GameManager.REINFORCING);
+						break;
+					}
 					Territory sourceTerritory = (Territory)move[0];
 					Territory destTerritory = (Territory)move[1];
 					int numTroops = (Integer)move[2];

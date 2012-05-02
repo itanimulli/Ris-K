@@ -246,6 +246,8 @@ public abstract class Player {
 	
 	public abstract Territory fortifyProcess();
 	
+	public abstract boolean continueAttack(int remaining, Object[] attack);
+	
 	public void resetSwitch(boolean value) {
 		resetSwitch = value;
 	}

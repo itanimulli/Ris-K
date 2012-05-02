@@ -45,4 +45,10 @@ public class AdvancedAI extends ComputerPlayer {
 		return null;
 	}
 
+	@Override
+	public boolean continueAttack(int remaining, Object[] attack) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
 }

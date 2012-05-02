@@ -138,7 +138,7 @@ public class GameManager {
 		int attackerLoss = 0, defenderLoss = 0;
 		int[] attackerRolls = new int[troops];
 		int[] defenderRolls = null;
-		if(to.getTroops() ==1){
+		if(to.getTroops() ==1 || troops == 1){
 			defenderRolls = new int[1];
 		}
 		else if (to.getTroops() > 1){
@@ -174,7 +174,7 @@ public class GameManager {
 		}
 	}
 	
-	public void processAttack(Player p, Object[] attack) {
+	public int processAttack(Player p, Object[] attack) {
 		Territory attackingTerritory = (Territory)attack[0];
 		Territory defendingTerritory = (Territory)attack[1];
 		int attackingTroops = (Integer)attack[2];
@@ -197,6 +197,9 @@ public class GameManager {
 		message(p + " attacked " + defendingTerritory + " from " + attackingTerritory + " with  " + attackingTroops
 				+ " troops and " + resultString + "! (Attacker losses: " + attackerLoss + ", Defender Losses: "
 				+ defenderLoss + ")");
+		if (result) return 0;
+		return attackingTroops - attackerLoss;
+
 	}
 	
 	public void randomPlayer() {
