@@ -63,13 +63,16 @@ public class RiskGui extends JFrame {
 		for(int i = 0; i<numPlayers; i++){//Get all the player names and player types, human or computer
 			String playerName = JOptionPane.showInputDialog(rg, "Input player " + (i+1) + "\'s name.");
 			Player player;
-			if(JOptionPane.showConfirmDialog(rg, "Is player " + (i+1) + " a human?") == JOptionPane.YES_OPTION){
-				player = new HumanPlayer(rg.getGM(), rg);
-				player.setName(playerName);
-			}else{
+			Object[] options = {"Human", "Easy AI", "Medium AI"};
+			int playerType = JOptionPane.showOptionDialog(rg, "Player type for player "+(i+1), "Type of Player", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null,  options, options[0]); 
+			if(playerType == 1){
 				player = new EasyAI(rg.getGM());
-				player.setName(playerName);
+			}else if (playerType == 2){
+				player = new MediumAI(rg.getGM());
+			} else {
+				player = new HumanPlayer(rg.getGM(), rg);
 			}
+			player.setName(playerName);
 			gm.addPlayer(player);//add the player to the game manager
 		}
 		JOptionPane.showMessageDialog(rg, "Choose territories by pressing the button of an unoccupied territory");
