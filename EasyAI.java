@@ -1,26 +1,28 @@
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Random;
 
-
+//Class Simple AI
 public class EasyAI extends ComputerPlayer{
 	
 	Random r;
+	private boolean attackedThisTurn;
 	public EasyAI(GameManager gm){
 		super(gm);
 		r = new Random();
+		attackedThisTurn = false;
 	}
 	
 	public HashMap<Territory, Integer> reinforceProcess() {
-		//TODO
-		//generates a hashmap of territories and their associate reinforcements
-		HashMap reinforcements = new HashMap<Territory, Integer>();
-		while(this.remainingReinforcements > 0){
-			reinforcements.put(t,)
-			
+		HashMap<Territory, Integer> map = new HashMap<Territory, Integer>();
+		for(int i=0; i<territories.size(); i++) {
+			map.put(territories.get(i), 0);
 		}
+		for(int i=remainingReinforcements; i>0; i--) {
+			Territory randomTerritory = territories.get((int)(Math.random()*territories.size()));
+			map.put(randomTerritory, map.get(randomTerritory)+1);
+		}
+		return map;
 	}
 
 	
@@ -64,7 +66,7 @@ public class EasyAI extends ComputerPlayer{
 				from = this.territories.get(i);
 			}
 			Territory to = this.territories.get(r.nextInt(this.territories.size()));
-			return this.attack(from, to, r.nextInt(from.getTroops()-1));
+			return manager.attack(from, to, r.nextInt(from.getTroops()-1));
 		}
 		return false;
 		
