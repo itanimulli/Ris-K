@@ -12,6 +12,7 @@ public class RiskPanel extends JPanel implements ActionListener{
 	
 	private Image background;
 	private JButton skipButton;
+	private JButton cardsButton;
 	private JButton[] tButtons;
 	private JLabel[] tLabels;
 	private JLabel cards = new JLabel();
@@ -40,13 +41,20 @@ public class RiskPanel extends JPanel implements ActionListener{
 			System.out.println(e.getStackTrace());
 		}
 		repaint();
-		skipButton = new JButton("->");
+		skipButton = new JButton(">>>");
 		skipButton.addActionListener(this);
-		int skipx = (int)(getWidth()-30);
+		int skipx = (int)(getWidth()-60);
 		int skipy = (int)(getHeight()-30);
 		add(skipButton);
-		skipButton.setBounds(skipx, skipy, 30, 30);
+		skipButton.setBounds(skipx, skipy, 60, 30);
 		skipButton.setEnabled(false);
+		cardsButton = new JButton("View Cards");
+		cardsButton.addActionListener(this);
+		int cardx = (int)(getWidth()-180);
+		int cardy = (int)(getHeight()-30);
+		add(cardsButton);
+		cardsButton.setBounds(cardx, cardy, 120, 30);
+		cardsButton.setEnabled(false);
 		tButtons = new JButton[gui.getGM().getBoard().getTerritories().size()];
 		tLabels = new JLabel[tButtons.length];
 		for(int i=0; i<tButtons.length; i++){
@@ -135,6 +143,24 @@ public class RiskPanel extends JPanel implements ActionListener{
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == skipButton) {
 			gui.setChosenTerritory(new Territory("Skip"));
+		} else if (e.getSource() == cardsButton) {
+			Player currentPlayer = gui.getGM().getPlayers().get(gui.getGM().getCurPlayer());
+			String message = "You are holding the following cards: \n\n";
+			ArrayList<Integer> cards = currentPlayer.getCards();
+			for(int i=0; i<cards.size(); i++) {
+				message += cards.get(i)+"\t";
+			}
+			Object[] options = {"Close", "Turn In"};
+			if (JOptionPane.showOptionDialog(gui, message, "Cards", JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null,  options, options[0]) == 1) {
+				int reward;
+				if ((reward = currentPlayer.turnInCards()) == 0) {
+					JOptionPane.showConfirmDialog(gui, "You cannot turn in cards now.");
+				} else {
+					Territory nT = new Territory("Cards");
+					nT.setTroops(reward);
+					gui.setChosenTerritory(nT);
+				}
+			}
 		} else if (e.getSource().getClass().getName().endsWith("JButton")) {
 			JButton button = (JButton)e.getSource();
 			gui.setChosenTerritory(button.getText());
@@ -143,6 +169,10 @@ public class RiskPanel extends JPanel implements ActionListener{
 	
 	public void allowSkip(boolean allow) {
 		skipButton.setEnabled(allow);
+	}
+	
+	public void allowCards(boolean allow) {
+		cardsButton.setEnabled(allow);
 	}
 	
 	public void enableTerritories(ArrayList<Territory> enabledTerritories) {

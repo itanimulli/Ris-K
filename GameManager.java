@@ -12,7 +12,8 @@ public class GameManager {
 	private ArrayList<Player> players;
 	private int curPlayer;
 	private Board board;
-	private int currBonusInd = 0;
+	private static final int[] cardBonus = {4, 6, 8, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60};
+	private int cardIndex;
 	private int state = 0;
 	
 	private PrintStream console;
@@ -25,6 +26,13 @@ public class GameManager {
 		curPlayer = 0;
 		console = output;
 		state = CHOOSING;
+		cardIndex = 0;
+	}
+	
+	public int getCardBonus() {
+		int reward = cardBonus[cardIndex];
+		if (cardIndex > cardBonus.length - 1) cardIndex++;
+		return reward;
 	}
 
 	public ArrayList<Player> getPlayers() {
@@ -134,6 +142,7 @@ public class GameManager {
 	
 	//attack a specific territory from another territory with a certain number of troops. Returns whether the attacker won.
 	public static boolean attack(Territory from, Territory to, int troops){
+		if (troops == 0) return false;
 		Random r = new Random();
 		int attackerLoss = 0, defenderLoss = 0;
 		int[] attackerRolls = new int[troops];
@@ -165,6 +174,7 @@ public class GameManager {
 		to.remove(defenderLoss);
 		if(to.getTroops() < 1){
 			int remainingAttackers = troops - attackerLoss;
+			to.getOwner().remove(to);
 			from.getOwner().addTerritory(to);
 			from.getOwner().move(from, to, remainingAttackers);
 			return true;
@@ -214,6 +224,15 @@ public class GameManager {
 			if (p.getTerritories().containsAll(c.getTerritories())) totalBonus += c.getValue();
 		}
 		return totalBonus;
+	}
+	
+	public boolean checkElimination() {
+		if (players.get(curPlayer).getTerritories().size() == 0) {
+			players.remove(players.get(curPlayer));
+			nextPlayer();
+			return true;
+		}
+		return false;
 	}
 	
 }

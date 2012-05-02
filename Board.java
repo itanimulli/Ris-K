@@ -53,7 +53,7 @@ public class Board {
 		return territories.containsEdge(t1, t2);
 	}
 	
-	public boolean hasExtendedConnectionRecurse(Territory t, Territory dest) {
+	private boolean hasExtendedConnectionRecurse(Territory t, Territory dest) {
 		if (t == dest) return true;
 		Iterator<Territory> neighbors = territories.neighbors(t);
 		while(neighbors.hasNext()) {

@@ -104,7 +104,7 @@ public abstract class Player {
 
 	/* Returns whether the player has a set of three identical cards.
 	 */
-	protected boolean hasTriplet(){
+	protected int hasTriplet(){
 		int ones=0, twos=0, threes=0;
 		Iterator<Integer> i = cards.iterator();
 		while(i.hasNext()){
@@ -117,7 +117,10 @@ public abstract class Player {
 				threes++; break;
 			}
 		}
-		return (ones >= 3 || twos >= 3 || threes >= 3);
+		if (ones >= 3) return 1;
+		if (twos >= 3) return 2;
+		if (threes >= 3) return 3;
+		return -1;
 	}
 
 	/* Returns whether the player has one of each type of card.
@@ -155,7 +158,20 @@ public abstract class Player {
 	 * turning in cards. Possibly handle the user choosing which combination to turn in if more than one is possible.
 	 */
 	public int turnInCards(){
-		return 0;//TODO
+		int reward = 0;
+		int cardNumber;
+		if ((cardNumber = hasTriplet()) != -1) {
+			reward = manager.getCardBonus();
+			cards.remove(cards.indexOf(cardNumber));
+			cards.remove(cards.indexOf(cardNumber));
+			cards.remove(cards.indexOf(cardNumber));
+		} else if (hasMixedSet()) {
+			reward = manager.getCardBonus();
+			cards.remove(cards.indexOf(1));
+			cards.remove(cards.indexOf(2));
+			cards.remove(cards.indexOf(3));
+		}
+		return reward;		
 	}
 
 	/*Helper method for turnInCards()
@@ -225,6 +241,10 @@ public abstract class Player {
 	public void collectCard(){
 		int card = (int)(Math.random()*3 +1);
 		cards.add(card);
+	}
+	
+	public int cardCount() {
+		return cards.size();
 	}
 
 	//adds all the cards that belong to a player to another players list. To be called when a player is defeated.

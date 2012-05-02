@@ -44,9 +44,9 @@ public class EasyAI extends ComputerPlayer{
 	public Territory askInitReinforce() {
 		// gets a random territory to reinforce at the beginning of the game
 		Territory t = null;
-		int i = r.nextInt(manager.getBoard().getTerritories().size());
 		
 		do{
+			int i = r.nextInt(manager.getBoard().getTerritories().size());
 			t = manager.getBoard().getTerritories().get(i);
 		}
 		while(t.getOwner() != null);
@@ -54,7 +54,7 @@ public class EasyAI extends ComputerPlayer{
 	}
 
 	
-	public boolean attackProcess() {
+	public Object[] attackProcess() {
 		//comprises the entire attack process
 		
 		int i = r.nextInt(this.getTerritories().size());
@@ -66,18 +66,20 @@ public class EasyAI extends ComputerPlayer{
 				from = this.territories.get(i);
 			}
 			Territory to = this.territories.get(r.nextInt(this.territories.size()));
-			return manager.attack(from, to, r.nextInt(from.getTroops()-1));
+			Object[] attack = {from, to, r.nextInt(from.getTroops()-1)};
+			return attack;
 		}
-		return false;
+		return null;
 		
 	}
 
 	
-	public void moveProcess() {
+	public Object[] moveProcess() {
 		//makes a random troop movement (random # of troop between 2 random territories)
 		
 		int i = r.nextInt(this.getTerritories().size());
 		Territory from = this.getTerritories().get(i);
+		if (from.getTroops() == 1) return null;
 		int j = r.nextInt(this.getTerritories().size());
 		Territory to;
 		if(i != j){
@@ -85,9 +87,25 @@ public class EasyAI extends ComputerPlayer{
 		}
 		else{
 			j++;
+			j%=territories.size();
 			to = this.getTerritories().get(j);
 		}
-		this.move(from, to, r.nextInt(from.getTroops()-1));
+		if (manager.getBoard().hasExtendedConnection(from, to)) {
+			Object[] move = {from, to, r.nextInt(from.getTroops()-1)};
+			return move;
+		}
+		else return null;
+	}
+
+	@Override
+	public Territory fortifyProcess() {
+		return territories.get(r.nextInt(territories.size()-1));
+	}
+
+	@Override
+	public boolean continueAttack(int remaining, Object[] attack) {
+		// TODO Auto-generated method stub
+		return true;
 	}
 
 }

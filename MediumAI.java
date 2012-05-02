@@ -5,6 +5,9 @@ import java.util.Random;
 /*medium AI, targeted attacks, random reinforcement*/
 public class MediumAI extends ComputerPlayer{
 	
+	public static final double aggression_ratio = 1.5;
+	public static final int hard_aggression_minimum = 15;
+	
 	Random r;
 	public MediumAI(GameManager gm){
 		super(gm);
@@ -43,9 +46,9 @@ public class MediumAI extends ComputerPlayer{
 	public Territory askInitReinforce() {
 		// gets a random territory to reinforce at the beginning of the game
 		Territory t = null;
-		int i = r.nextInt(manager.getBoard().getTerritories().size());
 		
 		do{
+			int i = r.nextInt(manager.getBoard().getTerritories().size());
 			t = manager.getBoard().getTerritories().get(i);
 		}
 		while(t.getOwner() != null);
@@ -53,60 +56,88 @@ public class MediumAI extends ComputerPlayer{
 	}
 
 	
-	public boolean attackProcess() {
+	public Object[] attackProcess() {
 		//comprises the entire attack process
-		int ntroops = 0;
-		if(this.bestStage().getTroops() > 3){
-			ntroops = 3;
-		}
-		else if(bestStage().getTroops() > 1 && bestStage().getTroops() < 3){
-			ntroops = bestStage().getTroops() - 1;
-		}
+		Territory stage = bestStage();
+		if (stage == null) return null;
+		Territory target = bestTarget(bestStage());
+		if (target == null) return null;
+		int ntroops = stage.getTroops() - 1;
 		
-		return manager.attack(bestStage(), bestTarget(bestStage()), (bestStage().getTroops() -1));
+		double ratio = ((double)ntroops)/target.getTroops();
+		int difference = ntroops - target.getTroops();
+		
+		if ((ratio < aggression_ratio) && (difference < hard_aggression_minimum)) return null; 
+		
+		Object[] attack = {stage, target, ntroops};
+		return attack;
 	}
 
 	
-	public void moveProcess() {
-		//makes a random troop movement (random # of troop between 2 random territories)
-		
-		int i = r.nextInt(getTerritories().size());
-		Territory from = getTerritories().get(i);
-		int j = r.nextInt(getTerritories().size());
+	public Object[] moveProcess() {
+		/*int i = r.nextInt(this.getTerritories().size());
+		Territory from = this.getTerritories().get(i);
+		if (from.getTroops() == 1) return null;
+		int j = r.nextInt(this.getTerritories().size());
 		Territory to;
 		if(i != j){
-			to = getTerritories().get(j);
+			to = this.getTerritories().get(j);
 		}
 		else{
 			j++;
-			to = getTerritories().get(j);
+			j%=territories.size();
+			to = this.getTerritories().get(j);
 		}
-		this.move(from, to, r.nextInt(from.getTroops()-1));
+		if (manager.getBoard().hasExtendedConnection(from, to)) {
+			Object[] move = {from, to, r.nextInt(from.getTroops()-1)};
+			return move;
+		}
+		else return null;*/
+		
+		
+		Territory to = bestStage();
+		Territory from = bestStage(to);
+		if (from == null) return null;
+		if (from.getTroops() == 1) return null;
+		if (!manager.getBoard().hasExtendedConnection(from, to)) return null;
+		Object[] move = {from, to, r.nextInt(from.getTroops()-1)};
+		return move;
 	}
 	
 	public Territory bestTarget(Territory t){
 		int min = 1000;
 		Territory best = null;
 		ArrayList<Territory> connect = (ArrayList<Territory>) manager.getBoard().getConnections(t);
-		for(int j = 1; j < connect.size(); j++){
-			if(connect.get(j).getTroops() < min && connect.get(j).getOwner() != this);
-			min = connect.get(j).getTroops();
-			best = connect.get(j);
+		for(int j = 0; j < connect.size(); j++){
+			if(connect.get(j).getTroops() < min && connect.get(j).getOwner() != this) {
+				min = connect.get(j).getTroops();
+				best = connect.get(j);
+			}
 		}
 		return best;
 	}
 	
-	public Territory bestStage(){
+	public Territory bestStage(Territory except){
 		//gets the territory with the most troops
 		int max = 0;
 		Territory best = null;
 		for(int i = 0; i < territories.size(); i++){
-			if(territories.get(i).getTroops() > max){
+			boolean hasEnemyConnected = false;
+			ArrayList<Territory> neighbors;
+			for (int j=0; j<manager.getBoard().getConnections(territories.get(i)).size() && !hasEnemyConnected; j++) {
+				if (manager.getBoard().getConnections(territories.get(i)).get(j).getOwner() != this) hasEnemyConnected = true;
+			}
+			if (except != null) hasEnemyConnected = true;
+			if(hasEnemyConnected && (territories.get(i).getTroops() > max) && (territories.get(i) != except)){
 				max = territories.get(i).getTroops();
 				best = territories.get(i);
 			}
 		}
 		return best;
+	}
+	
+	public Territory bestStage(){
+		return bestStage(null);
 	}
 	
 	public boolean continueAttack(int remaining, Object[] attack){
@@ -116,5 +147,10 @@ public class MediumAI extends ComputerPlayer{
 		else{
 			return true;
 		}
+	}
+
+	@Override
+	public Territory fortifyProcess() {
+		return territories.get(r.nextInt(territories.size()-1));
 	}
 }

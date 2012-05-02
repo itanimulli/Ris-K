@@ -21,6 +21,7 @@ public class RiskGui extends JFrame {
 		getContentPane().add(rp);
 		pack();
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
+		setTitle("Ris-K - A Project by Nick Shelton, Scotty Loftin, Trey Moore and Tom Lu");
 		setVisible(true);
 	}
 	
@@ -46,7 +47,6 @@ public class RiskGui extends JFrame {
 		GameManager gm = rg.getGM();
 		boolean entered = false;
 		int numPlayers = 0;
-		ArrayList<Player> players = new ArrayList<Player>();
 		while(!entered){
 			try{
 				numPlayers = Integer.parseInt(JOptionPane.showInputDialog(rg, "How many players will be playing in this game?"));
@@ -84,7 +84,7 @@ public class RiskGui extends JFrame {
 			Player currentPlayer = gm.nextPlayer();
 			rg.rp.enableTerritories(enableTerritories);
 			//Turn display prompt
-			rg.rp.getPrompt().setText("Choose territories, current player is player " + gm.getCurPlayer()+1 + ", " + currentPlayer);
+			rg.rp.getPrompt().setText("It's "+currentPlayer+"'s turn to choose a territory.");
 			rg.chosenTerritory = null;
 			if (currentPlayer.getClass().getSuperclass().getName().endsWith("ComputerPlayer"))
 				rg.chosenTerritory = currentPlayer.askInitReinforce();
@@ -107,8 +107,7 @@ public class RiskGui extends JFrame {
 			if (gm.remainingFortifications(currentPlayer) < 1) {
 				gm.setState(GameManager.REINFORCING);
 			} else {
-				rg.rp.getPrompt().setText("Fortify territories, current player is player " + gm.getCurPlayer()+1 + ", "
-						+ currentPlayer + " (Remaining: "+gm.remainingFortifications(currentPlayer) + ")");
+				rg.rp.getPrompt().setText("It's "+currentPlayer+"'s turn to fortify a territory (Remaining: "+gm.remainingFortifications(currentPlayer) + ")");
 				rg.chosenTerritory = null;
 				if (currentPlayer.getClass().getSuperclass().getName().endsWith("ComputerPlayer"))
 					rg.chosenTerritory = currentPlayer.fortifyProcess();
@@ -128,12 +127,15 @@ public class RiskGui extends JFrame {
 			Player currentPlayer = gm.getPlayers().get(gm.getCurPlayer());
 			rg.chosenTerritory = null;
 			
+			if (gm.checkElimination()) continue;
+			
 			switch (gm.getState()) {
 			case GameManager.REINFORCING:
 				enableTerritories.clear();
 				enableTerritories.addAll(currentPlayer.getTerritories());
 				rg.rp.enableTerritories(enableTerritories);
 				rg.rp.allowSkip(false);
+				rg.rp.allowCards(true);
 				if (currentPlayer.resetSwitch()) {
 					currentPlayer.reset();
 					currentPlayer.resetSwitch(false);
@@ -145,6 +147,11 @@ public class RiskGui extends JFrame {
 				}
 				rg.rp.getPrompt().setText(currentPlayer+"'s turn, reinforcement phase (Remaining: "+currentPlayer.remainingReinforcements+")");
 				if (currentPlayer.getClass().getSuperclass().getName().endsWith("ComputerPlayer")) {
+					if (currentPlayer.askTurnIn()) {
+						currentPlayer.remainingReinforcements += currentPlayer.turnInCards();
+						gm.setState(GameManager.REINFORCING);
+						break;
+					}
 					HashMap<Territory, Integer> reinforceMap = currentPlayer.reinforceProcess();
 					for(int i=0; i<currentPlayer.getTerritories().size(); i++) {
 						Territory currentTerritory = currentPlayer.getTerritories().get(i);
@@ -156,10 +163,16 @@ public class RiskGui extends JFrame {
 						}
 					}
 					currentPlayer.resetSwitch(true);
+					currentPlayer.remainingReinforcements = 0;
 					gm.setState(GameManager.ATTACKING);
 				} else {
 					while (rg.chosenTerritory == null || rg.chosenTerritory.getOwner() != currentPlayer) {
 						if (rg.chosenTerritory != null) {
+							if (rg.chosenTerritory.getName().equals("Cards")) {
+								currentPlayer.remainingReinforcements += rg.chosenTerritory.getTroops();
+								gm.setState(GameManager.REINFORCING);
+								break;
+							}
 							JOptionPane.showMessageDialog(rg, "That territory does not belong to you.");
 							rg.chosenTerritory = null;
 						}
@@ -183,11 +196,17 @@ public class RiskGui extends JFrame {
 				break;
 				
 			case GameManager.ATTACKING:
+				rg.rp.allowCards(false);
+				boolean getsCard = false;
+				if (!currentPlayer.hasConquered()) {
+					getsCard = true;
+				}
 				rg.rp.allowSkip(true);
 				rg.rp.getPrompt().setText(currentPlayer+"'s turn, attack phase");
 				if (currentPlayer.getClass().getSuperclass().getName().endsWith("ComputerPlayer")) {
 					Object[] attack;
 					while ((attack = currentPlayer.attackProcess()) != null) {
+						Player defendPlayer = ((Territory)attack[1]).getOwner();
 						boolean wantsToContinue = true;
 						int remaining;
 						while (wantsToContinue && (remaining = gm.processAttack(currentPlayer, attack)) != 0) {
@@ -196,6 +215,18 @@ public class RiskGui extends JFrame {
 						}
 						rg.rp.updateTerritory((Territory)attack[0]);
 						rg.rp.updateTerritory((Territory)attack[1]);
+						if (currentPlayer.hasConquered && getsCard) {
+							currentPlayer.collectCard();
+							getsCard = false;
+						}
+						if (defendPlayer.getTerritories().size() == 0) {
+							currentPlayer.collectCards(defendPlayer);
+							while (currentPlayer.cardCount() > 5) {
+								currentPlayer.remainingReinforcements = currentPlayer.turnInCards();
+								gm.setState(GameManager.REINFORCING);
+							}
+							break;
+						}
 					}
 					gm.setState(GameManager.MOVING);
 				} else {
@@ -222,6 +253,7 @@ public class RiskGui extends JFrame {
 						try {Thread.sleep(10);} catch (InterruptedException e) {}
 						Territory attackTerritory = null;
 						Territory defendTerritory = null;
+						Player defendPlayer = null;
 						if (rg.chosenTerritory != null) {
 							if (rg.chosenTerritory.getName().equals("Skip")) {
 								gm.setState(GameManager.MOVING);
@@ -254,6 +286,7 @@ public class RiskGui extends JFrame {
 								if (rg.chosenTerritory.getOwner() == currentPlayer) continue;
 								
 								defendTerritory = rg.chosenTerritory;
+								defendPlayer = defendTerritory.getOwner();
 								try {
 									int numTroops = Integer.parseInt(JOptionPane.showInputDialog(rg, "How many troops would you like to attack with?", 1));
 									if (numTroops < 0) {
@@ -275,6 +308,18 @@ public class RiskGui extends JFrame {
 										}
 										rg.rp.updateTerritory(attackTerritory);
 										rg.rp.updateTerritory(defendTerritory);
+										if (currentPlayer.hasConquered && getsCard) {
+											currentPlayer.collectCard();
+											getsCard = false;
+										}
+										if (defendPlayer.getTerritories().size() == 0) {
+											currentPlayer.collectCards(defendPlayer);
+											while (currentPlayer.cardCount() > 5) {
+												currentPlayer.remainingReinforcements += currentPlayer.turnInCards();
+												gm.setState(GameManager.REINFORCING);
+											}
+											break;
+										}
 									}
 								} catch (NumberFormatException e) {
 									JOptionPane.showMessageDialog(rg, "Sorry, that is not a valid integer. Please try again.");
@@ -286,6 +331,7 @@ public class RiskGui extends JFrame {
 				break;
 				
 			case GameManager.MOVING:
+				rg.rp.allowCards(false);
 				rg.rp.allowSkip(true);
 				rg.rp.getPrompt().setText(currentPlayer + "'s turn, movement phase");
 				if (currentPlayer.getClass().getSuperclass().getName().endsWith("ComputerPlayer")) {
@@ -303,6 +349,8 @@ public class RiskGui extends JFrame {
 							+ " to " + destTerritory + ".");
 					rg.rp.updateTerritory(sourceTerritory);
 					rg.rp.updateTerritory(destTerritory);
+					gm.nextPlayer();
+					gm.setState(GameManager.REINFORCING);
 				} else {
 					while (gm.getState() == GameManager.MOVING) {
 						Territory sourceTerritory = null;
