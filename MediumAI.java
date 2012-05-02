@@ -2,9 +2,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 
-public class AdvancedAI extends ComputerPlayer {
+public class MediumAI extends ComputerPlayer {
 
-	public AdvancedAI(GameManager gm) {
+	public MediumAI(GameManager gm) {
 		super(gm);
 		// TODO Auto-generated constructor stub
 	}

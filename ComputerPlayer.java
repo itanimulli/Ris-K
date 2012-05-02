@@ -11,7 +11,7 @@ public abstract class ComputerPlayer extends Player{
 	public abstract HashMap<Territory, Integer> reinforceProcess();
 	protected abstract ArrayList<Territory> askReinforcements(int numReinforcements);
 	public abstract Territory askInitReinforce();
-	public abstract boolean attackProcess();
-	public abstract void moveProcess();
+	public abstract Object[] attackProcess();
+	public abstract Object[] moveProcess();
 
 }
