@@ -255,7 +255,8 @@ public abstract class Player {
 	}
 	
 	public void reset() {
-		remainingReinforcements += (int)Math.max(Math.floor(territories.size()/4), 3);
+		remainingReinforcements += (int)Math.max(Math.floor(territories.size()/3), 3);
+		remainingReinforcements += manager.calculateContinentBonus(this);
 		hasConquered = false;
 	}
 }

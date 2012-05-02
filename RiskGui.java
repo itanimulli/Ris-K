@@ -278,7 +278,7 @@ public class RiskGui extends JFrame {
 					rg.rp.updateTerritory(sourceTerritory);
 					rg.rp.updateTerritory(destTerritory);
 				} else {
-					while (gm.getState() == GameManager.ATTACKING) {
+					while (gm.getState() == GameManager.MOVING) {
 						Territory sourceTerritory = null;
 						Territory destTerritory = null;
 						rg.chosenTerritory = null;
@@ -291,6 +291,7 @@ public class RiskGui extends JFrame {
 						enableTerritories.removeAll(removeTerritories);
 						rg.rp.enableTerritories(enableTerritories);
 						
+						try {Thread.sleep(10);} catch (InterruptedException e) {}
 						if (rg.chosenTerritory != null) {
 							if (rg.chosenTerritory.getName().equals("Skip")) {
 								gm.nextPlayer();
@@ -302,7 +303,8 @@ public class RiskGui extends JFrame {
 								removeTerritories.clear();
 								enableTerritories.addAll(currentPlayer.getTerritories());
 								for(int i=0; i<enableTerritories.size(); i++) {
-									if (!gm.getBoard().hasExtendedConnection(sourceTerritory, enableTerritories.get(i)));
+									if (!gm.getBoard().hasExtendedConnection(sourceTerritory, enableTerritories.get(i)))
+										removeTerritories.add(enableTerritories.get(i));
 								}
 								enableTerritories.removeAll(removeTerritories);
 								rg.rp.enableTerritories(enableTerritories);
@@ -313,6 +315,7 @@ public class RiskGui extends JFrame {
 									gm.nextPlayer();
 									gm.setState(GameManager.REINFORCING);
 								} else {
+									if (rg.chosenTerritory == sourceTerritory) continue;
 									destTerritory = rg.chosenTerritory;
 									rg.chosenTerritory = null;
 									try {
@@ -322,13 +325,13 @@ public class RiskGui extends JFrame {
 										} else if (numTroops > sourceTerritory.getTroops()+1) {
 											JOptionPane.showMessageDialog(rg, "You cannot move that many troops.");
 										} else if (numTroops > 0) {
-											numTroops = Math.min(numTroops, 3);
-											Object[] move = {sourceTerritory, destTerritory, numTroops};
-											gm.processAttack(currentPlayer, move);
+											currentPlayer.move(sourceTerritory, destTerritory, numTroops);
 											gm.message(currentPlayer + " has moved " + numTroops + " troops from " + sourceTerritory
 													+ " to " + destTerritory + ".");
 											rg.rp.updateTerritory(sourceTerritory);
 											rg.rp.updateTerritory(destTerritory);
+											gm.nextPlayer();
+											gm.setState(GameManager.REINFORCING);
 										}
 									} catch (NumberFormatException e) {
 										JOptionPane.showMessageDialog(rg, "Sorry, that is not a valid integer. Please try again.");
@@ -340,5 +343,6 @@ public class RiskGui extends JFrame {
 				}
 			}
 		}
+		JOptionPane.showMessageDialog(rg, gm.hasWon() + " has won the game!");
 	}
 }

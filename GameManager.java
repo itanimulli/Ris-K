@@ -203,4 +203,14 @@ public class GameManager {
 		curPlayer = (int)(players.size()*Math.random());
 	}
 	
+	public int calculateContinentBonus(Player p) {
+		int totalBonus = 0;
+		ArrayList<Continent> continents = board.getContinents();
+		for(int i=0; i<continents.size(); i++) {
+			Continent c = continents.get(i);
+			if (p.getTerritories().containsAll(c.getTerritories())) totalBonus += c.getValue();
+		}
+		return totalBonus;
+	}
+	
 }

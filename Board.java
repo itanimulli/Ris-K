@@ -53,22 +53,28 @@ public class Board {
 		return territories.containsEdge(t1, t2);
 	}
 	
-	public boolean hasExtendedConnection(Territory t, Territory dest) {
+	public boolean hasExtendedConnectionRecurse(Territory t, Territory dest) {
+		if (t == dest) return true;
 		Iterator<Territory> neighbors = territories.neighbors(t);
 		while(neighbors.hasNext()) {
 			Territory neighbor = neighbors.next();
+			//Found it!
+			if (neighbor == dest) return true;
 			//Avoid revisiting vertices we've already checked
 			if (territories.isVisited(neighbor)) continue;
 			territories.visit(neighbor);
-			if (neighbor.getOwner() != t.getOwner()) return false;
-			//Found it!
-			if (neighbor == dest) return true;
+			if (neighbor.getOwner() != t.getOwner()) continue;
 			
 			//See if the neighbor has a path to the destination
-			if (hasExtendedConnection(neighbor, dest)) return true;
+			if (hasExtendedConnectionRecurse(neighbor, dest)) return true;
 		}
 		//No path found.
 		return false;
+	}
+	
+	public boolean hasExtendedConnection(Territory t, Territory dest) {
+		territories.reset();
+		return hasExtendedConnectionRecurse(t, dest);
 	}
 
 }
