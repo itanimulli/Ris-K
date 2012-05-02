@@ -207,7 +207,9 @@ public abstract class Player {
 	}
 
 	//Encompasses the entire moving procedure
-	public abstract void moveProcess();
+	//Returns an array of the source and destination territories and number of troops to move, or null to skip.
+	//{ SourceTerritory, DestinationTerritory, NumTroops }
+	public abstract Object[] moveProcess();
 
 	//returns whether or not the player has the ability to move troops
 	public boolean canMove(){

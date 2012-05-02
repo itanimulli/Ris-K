@@ -182,13 +182,21 @@ public class GameManager {
 		int defenderInitial = defendingTerritory.getTroops();
 		boolean result = attack(attackingTerritory, defendingTerritory, attackingTroops);
 		String resultString;
-		if (result) resultString = "won"; else resultString = "lost";
-		int attackerLoss = attackerInitial-attackingTerritory.getTroops();
-		int defenderLoss = defenderInitial-defendingTerritory.getTroops();
+		int attackerLoss;
+		int defenderLoss;
+		if (result) {
+			p.setHasConquered(true);
+			resultString = "won";
+			attackerLoss = attackerInitial-(attackingTerritory.getTroops()+defendingTerritory.getTroops());
+			defenderLoss = defenderInitial;
+		} else {
+			resultString = "lost";
+			attackerLoss = attackerInitial-attackingTerritory.getTroops();
+			defenderLoss = defenderInitial-defendingTerritory.getTroops();
+		}
 		message(p + " attacked " + defendingTerritory + " from " + attackingTerritory + " with  " + attackingTroops
 				+ " troops and " + resultString + "! (Attacker losses: " + attackerLoss + ", Defender Losses: "
 				+ defenderLoss + ")");
-		if (result) p.setHasConquered(true);
 	}
 	
 	public void randomPlayer() {

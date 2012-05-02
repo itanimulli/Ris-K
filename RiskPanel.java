@@ -41,6 +41,7 @@ public class RiskPanel extends JPanel implements ActionListener{
 		}
 		repaint();
 		skipButton = new JButton("->");
+		skipButton.addActionListener(this);
 		int skipx = (int)(getWidth()-30);
 		int skipy = (int)(getHeight()-30);
 		add(skipButton);
@@ -133,7 +134,7 @@ public class RiskPanel extends JPanel implements ActionListener{
 	
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == skipButton) {
-			gui.setChosenTerritory(new Territory(""));
+			gui.setChosenTerritory(new Territory("Skip"));
 		} else if (e.getSource().getClass().getName().endsWith("JButton")) {
 			JButton button = (JButton)e.getSource();
 			gui.setChosenTerritory(button.getText());
@@ -146,10 +147,8 @@ public class RiskPanel extends JPanel implements ActionListener{
 	
 	public void enableTerritories(ArrayList<Territory> enabledTerritories) {
 		for (int i=0; i<tButtons.length; i++) {
-			tButtons[i].setEnabled(false);
-		}
-		for(int i=0; i<enabledTerritories.size(); i++) {
-			tButtons[territories.indexOf(enabledTerritories.get(i))].setEnabled(true);
+			if (enabledTerritories.indexOf(territories.get(i)) != -1) tButtons[i].setEnabled(true);
+				else tButtons[i].setEnabled(false);
 		}
 	}
 	

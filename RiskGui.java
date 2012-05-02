@@ -74,8 +74,12 @@ public class RiskGui extends JFrame {
 		}
 		JOptionPane.showMessageDialog(rg, "Choose territories by pressing the button of an unoccupied territory");
 		gm.randomPlayer();
+		ArrayList<Territory> enableTerritories = new ArrayList<Territory>();
+		ArrayList<Territory> removeTerritories = new ArrayList<Territory>();
+		enableTerritories.addAll(gm.getBoard().getTerritories());
 		while(gm.getState() == GameManager.CHOOSING){//While the game is in the territory choosing state
 			Player currentPlayer = gm.nextPlayer();
+			rg.rp.enableTerritories(enableTerritories);
 			//Turn display prompt
 			rg.rp.getPrompt().setText("Choose territories, current player is player " + gm.getCurPlayer()+1 + ", " + currentPlayer);
 			rg.chosenTerritory = null;
@@ -89,10 +93,14 @@ public class RiskGui extends JFrame {
 				try {Thread.sleep(10);} catch (InterruptedException e) {}
 			}
 			gm.doInitReinforce(currentPlayer, rg.chosenTerritory);
+			enableTerritories.remove(rg.chosenTerritory);
 			rg.rp.updateTerritory(rg.chosenTerritory);
 		}
 		while(gm.getState() == GameManager.FORTIFYING){
+			enableTerritories.clear();
 			Player currentPlayer = gm.nextPlayer();
+			enableTerritories.addAll(currentPlayer.getTerritories());
+			rg.rp.enableTerritories(enableTerritories);
 			if (gm.remainingFortifications(currentPlayer) < 1) {
 				gm.setState(GameManager.REINFORCING);
 			} else {
@@ -119,6 +127,9 @@ public class RiskGui extends JFrame {
 			
 			switch (gm.getState()) {
 			case GameManager.REINFORCING:
+				enableTerritories.clear();
+				enableTerritories.addAll(currentPlayer.getTerritories());
+				rg.rp.enableTerritories(enableTerritories);
 				rg.rp.allowSkip(false);
 				if (currentPlayer.resetSwitch()) {
 					currentPlayer.reset();
@@ -176,19 +187,51 @@ public class RiskGui extends JFrame {
 					}
 					gm.setState(GameManager.MOVING);
 				} else {
-					rg.chosenTerritory = null;
 					while (gm.getState() == GameManager.ATTACKING) {
+						rg.chosenTerritory = null;
+						enableTerritories.clear();
+						removeTerritories.clear();
+						enableTerritories.addAll(currentPlayer.getTerritories()); 
+						for(int i=0; i<enableTerritories.size(); i++) {
+							Territory t = enableTerritories.get(i);
+							if (t.getTroops() < 2) {
+								removeTerritories.add(t);
+								continue;
+							}
+							ArrayList<Territory> neighbors = gm.getBoard().getConnections(t);
+							boolean hasEnemyConnection = false;
+							for(int k=0; k<neighbors.size() && !hasEnemyConnection; k++) {
+								if (neighbors.get(k).getOwner() != currentPlayer) hasEnemyConnection = true;
+							}
+							if (!hasEnemyConnection) removeTerritories.add(t);
+						}
+						enableTerritories.removeAll(removeTerritories);
+						rg.rp.enableTerritories(enableTerritories);
 						try {Thread.sleep(10);} catch (InterruptedException e) {}
 						Territory attackTerritory = null;
 						Territory defendTerritory = null;
-						if (rg.chosenTerritory != null && rg.chosenTerritory.getOwner() == currentPlayer) {
+						if (rg.chosenTerritory != null) {
+							if (rg.chosenTerritory.getName().equals("Skip")) {
+								gm.setState(GameManager.MOVING);
+								break;
+							}
 							if (rg.chosenTerritory.getTroops() < 2) continue; else {
 								attackTerritory = rg.chosenTerritory;
 								rg.chosenTerritory = null;
+								enableTerritories.clear();
+								removeTerritories.clear();
+								enableTerritories.addAll(gm.getBoard().getConnections(attackTerritory));
+								for(int i=0; i<enableTerritories.size(); i++) {
+									if (enableTerritories.get(i).getOwner() == currentPlayer) removeTerritories.add(enableTerritories.get(i));
+								}
+								enableTerritories.removeAll(removeTerritories);
+								enableTerritories.add(attackTerritory);
+								rg.rp.enableTerritories(enableTerritories);
 								while (rg.chosenTerritory == null) {
 									try {Thread.sleep(10);} catch (InterruptedException e) {}
 								}
 								if (rg.chosenTerritory.getName().equals("Skip")) {
+									gm.setState(GameManager.MOVING);
 									continue;
 								}
 								boolean isNeighbor = false;
@@ -196,6 +239,7 @@ public class RiskGui extends JFrame {
 								for (int i=0; i<neighbors.size() && !isNeighbor; i++)
 									if (neighbors.get(i) == rg.chosenTerritory) isNeighbor = true;
 								if (!isNeighbor) continue;
+								if (rg.chosenTerritory.getOwner() == currentPlayer) continue;
 								
 								defendTerritory = rg.chosenTerritory;
 								try {
@@ -205,6 +249,7 @@ public class RiskGui extends JFrame {
 									} else if (numTroops > attackTerritory.getTroops()+1) {
 										JOptionPane.showMessageDialog(rg, "You do not have enough troops to perform that attack.");
 									} else if (numTroops > 0) {
+										numTroops = Math.min(numTroops, 3);
 										Object[] attack = {attackTerritory, defendTerritory, numTroops};
 										gm.processAttack(currentPlayer, attack);
 										rg.rp.updateTerritory(attackTerritory);
@@ -214,20 +259,85 @@ public class RiskGui extends JFrame {
 									JOptionPane.showMessageDialog(rg, "Sorry, that is not a valid integer. Please try again.");
 								}
 							}
-						} else if (rg.chosenTerritory != null) {
-							if (rg.chosenTerritory.getName().equals("Skip")) {
-								gm.setState(GameManager.MOVING);
-								break;
-							}
-							continue;
-						}
+						} else if (rg.chosenTerritory != null) continue;
 					}
 				}
 				break;
 				
 			case GameManager.MOVING:
 				rg.rp.allowSkip(true);
-				
+				rg.rp.getPrompt().setText(currentPlayer + "'s turn, movement phase");
+				if (currentPlayer.getClass().getSuperclass().getName().endsWith("ComputerPlayer")) {
+					Object[] move = currentPlayer.moveProcess();
+					Territory sourceTerritory = (Territory)move[0];
+					Territory destTerritory = (Territory)move[1];
+					int numTroops = (Integer)move[2];
+					currentPlayer.move(sourceTerritory, destTerritory, numTroops);
+					gm.message(currentPlayer + " has moved " + numTroops + " troops from " + sourceTerritory
+							+ " to " + destTerritory + ".");
+					rg.rp.updateTerritory(sourceTerritory);
+					rg.rp.updateTerritory(destTerritory);
+				} else {
+					while (gm.getState() == GameManager.ATTACKING) {
+						Territory sourceTerritory = null;
+						Territory destTerritory = null;
+						rg.chosenTerritory = null;
+						enableTerritories.clear();
+						removeTerritories.clear();
+						enableTerritories.addAll(currentPlayer.getTerritories());
+						for(int i=0; i<enableTerritories.size(); i++) {
+							if (enableTerritories.get(i).getTroops() < 2) removeTerritories.add(enableTerritories.get(i));
+						}
+						enableTerritories.removeAll(removeTerritories);
+						rg.rp.enableTerritories(enableTerritories);
+						
+						if (rg.chosenTerritory != null) {
+							if (rg.chosenTerritory.getName().equals("Skip")) {
+								gm.nextPlayer();
+								gm.setState(GameManager.REINFORCING);
+							} else {
+								sourceTerritory = rg.chosenTerritory;
+								rg.chosenTerritory = null;
+								enableTerritories.clear();
+								removeTerritories.clear();
+								enableTerritories.addAll(currentPlayer.getTerritories());
+								for(int i=0; i<enableTerritories.size(); i++) {
+									if (!gm.getBoard().hasExtendedConnection(sourceTerritory, enableTerritories.get(i)));
+								}
+								enableTerritories.removeAll(removeTerritories);
+								rg.rp.enableTerritories(enableTerritories);
+								while (rg.chosenTerritory == null) {
+									try {Thread.sleep(10);} catch (InterruptedException e) {}
+								}
+								if (rg.chosenTerritory.getName().equals("Skip")) {
+									gm.nextPlayer();
+									gm.setState(GameManager.REINFORCING);
+								} else {
+									destTerritory = rg.chosenTerritory;
+									rg.chosenTerritory = null;
+									try {
+										int numTroops = Integer.parseInt(JOptionPane.showInputDialog(rg, "How many troops would you like to move?", 1));
+										if (numTroops < 0) {
+											JOptionPane.showMessageDialog(rg, "You cannot move negative troops!");
+										} else if (numTroops > sourceTerritory.getTroops()+1) {
+											JOptionPane.showMessageDialog(rg, "You cannot move that many troops.");
+										} else if (numTroops > 0) {
+											numTroops = Math.min(numTroops, 3);
+											Object[] move = {sourceTerritory, destTerritory, numTroops};
+											gm.processAttack(currentPlayer, move);
+											gm.message(currentPlayer + " has moved " + numTroops + " troops from " + sourceTerritory
+													+ " to " + destTerritory + ".");
+											rg.rp.updateTerritory(sourceTerritory);
+											rg.rp.updateTerritory(destTerritory);
+										}
+									} catch (NumberFormatException e) {
+										JOptionPane.showMessageDialog(rg, "Sorry, that is not a valid integer. Please try again.");
+									}
+								}
+							}
+						}
+					}
+				}
 			}
 		}
 	}
