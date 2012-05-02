@@ -2,7 +2,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 
-
+/*medium AI, targeted attacks, random reinforcement*/
 public class MediumAI extends ComputerPlayer{
 	
 	Random r;
@@ -12,13 +12,16 @@ public class MediumAI extends ComputerPlayer{
 	}
 	
 	public HashMap<Territory, Integer> reinforceProcess() {
-		//TODO
-		//generates a hashmap of territories and their associate reinforcements
-		HashMap reinforcements = new HashMap<Territory, Integer>();
-		while(this.remainingReinforcements > 0){
-			reinforcements.put(t,)
-			
-		}
+		HashMap<Territory, Integer> map = new HashMap<Territory, Integer>();
+			for(int i=0; i<territories.size(); i++) {
+				map.put(territories.get(i), 0);
+			}
+			for(int i=remainingReinforcements; i>0; i--) {
+				Territory randomTerritory = territories.get((int)(Math.random()*territories.size()));
+				map.put(randomTerritory, map.get(randomTerritory)+1);
+			}
+			return map;
+		
 	}
 
 	
@@ -28,10 +31,10 @@ public class MediumAI extends ComputerPlayer{
 			this.turnInCards();
 		}
 		
-		int i = r.nextInt(this.territories.size());
+		int i = r.nextInt(territories.size());
 		ArrayList<Territory> t = new ArrayList<Territory>();
 		for(int j = 0; j < i && j < numReinforcements; j++){
-			t.add(this.territories.get(j));
+			t.add(territories.get(j));
 		}
 		return t;
 	}
@@ -52,23 +55,31 @@ public class MediumAI extends ComputerPlayer{
 	
 	public boolean attackProcess() {
 		//comprises the entire attack process
-		return manager.attack(this.bestStage(), this.bestTarget(this.bestStage()), (this.bestStage().getTroops() -1));
+		int ntroops = 0;
+		if(this.bestStage().getTroops() > 3){
+			ntroops = 3;
+		}
+		else if(bestStage().getTroops() > 1 && bestStage().getTroops() < 3){
+			ntroops = bestStage().getTroops() - 1;
+		}
+		
+		return manager.attack(bestStage(), bestTarget(bestStage()), (bestStage().getTroops() -1));
 	}
 
 	
 	public void moveProcess() {
 		//makes a random troop movement (random # of troop between 2 random territories)
 		
-		int i = r.nextInt(this.getTerritories().size());
-		Territory from = this.getTerritories().get(i);
-		int j = r.nextInt(this.getTerritories().size());
+		int i = r.nextInt(getTerritories().size());
+		Territory from = getTerritories().get(i);
+		int j = r.nextInt(getTerritories().size());
 		Territory to;
 		if(i != j){
-			to = this.getTerritories().get(j);
+			to = getTerritories().get(j);
 		}
 		else{
 			j++;
-			to = this.getTerritories().get(j);
+			to = getTerritories().get(j);
 		}
 		this.move(from, to, r.nextInt(from.getTroops()-1));
 	}
@@ -89,16 +100,21 @@ public class MediumAI extends ComputerPlayer{
 		//gets the territory with the most troops
 		int max = 0;
 		Territory best = null;
-		for(int i = 0; i < this.territories.size(); i++){
-			if(this.territories.get(i).getTroops() > max){
-				max = this.territories.get(i).getTroops();
-				best = this.territories.get(i);
+		for(int i = 0; i < territories.size(); i++){
+			if(territories.get(i).getTroops() > max){
+				max = territories.get(i).getTroops();
+				best = territories.get(i);
 			}
 		}
 		return best;
 	}
 	
-	public boolean continueAttack(){
-		return true;
+	public boolean continueAttack(int remaining, Object[] attack){
+		if(remaining < 2){
+			return false;
+		}
+		else{
+			return true;
+		}
 	}
 }
