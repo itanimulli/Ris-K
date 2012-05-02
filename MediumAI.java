@@ -88,7 +88,7 @@ public class MediumAI extends ComputerPlayer{
 		int min = 1000;
 		Territory best = null;
 		ArrayList<Territory> connect = (ArrayList<Territory>) manager.getBoard().getConnections(t);
-		for(int j = 1; j < connect.size(); i++){
+		for(int j = 1; j < connect.size(); j++){
 			if(connect.get(j).getTroops() < min && connect.get(j).getOwner() != this);
 			min = connect.get(j).getTroops();
 			best = connect.get(j);
