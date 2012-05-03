@@ -1,4 +1,4 @@
-
+//Basic territory class with mutators for all instance variables (all self explanatory)
 public class Territory {
 	
 	private String name;
