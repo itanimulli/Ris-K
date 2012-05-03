@@ -7,12 +7,13 @@ public class EasyAI extends ComputerPlayer{
 	
 	Random r;
 	private boolean attackedThisTurn;
+	//Constructor: calls superconstructor and sets instance variables
 	public EasyAI(GameManager gm){
 		super(gm);
 		r = new Random();
 		attackedThisTurn = false;
 	}
-	
+	//ReinforceProcess(): handles reinforcement of all territories during first phase of each turn
 	public HashMap<Territory, Integer> reinforceProcess() {
 		HashMap<Territory, Integer> map = new HashMap<Territory, Integer>();
 		for(int i=0; i<territories.size(); i++) {
@@ -104,7 +105,7 @@ public class EasyAI extends ComputerPlayer{
 
 	@Override
 	public boolean continueAttack(int remaining, Object[] attack) {
-		// TODO Auto-generated method stub
+		// EasyAI will always attack
 		return true;
 	}
 
