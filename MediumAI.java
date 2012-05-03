@@ -6,7 +6,10 @@ import java.util.Random;
 public class MediumAI extends ComputerPlayer{
 	
 	public static final double aggression_ratio = 1.5;
+	//Agression Ratio: determines the ratio of attackers to defenders that the AI must reach in a given territory in 
+	//order to attack
 	public static final int hard_aggression_minimum = 15;
+	//Minimum number of troops needed for the AI to attack from any given territory
 	
 	Random r;
 	public MediumAI(GameManager gm){
@@ -14,6 +17,7 @@ public class MediumAI extends ComputerPlayer{
 		r = new Random();
 	}
 	
+	//reinforce random territoeries with random troops
 	public HashMap<Territory, Integer> reinforceProcess() {
 		HashMap<Territory, Integer> map = new HashMap<Territory, Integer>();
 			for(int i=0; i<territories.size(); i++) {
@@ -57,7 +61,9 @@ public class MediumAI extends ComputerPlayer{
 
 	
 	public Object[] attackProcess() {
-		//comprises the entire attack process
+		//comprises the entire attack process: Medium AI will always attack given that the ratio of
+		//attacking to defending troops is above a certain threshold and there are no more than 15 more 
+		//defending troops than attacking troops
 		Territory stage = bestStage();
 		if (stage == null) return null;
 		Territory target = bestTarget(bestStage());
@@ -75,26 +81,7 @@ public class MediumAI extends ComputerPlayer{
 
 	
 	public Object[] moveProcess() {
-		/*int i = r.nextInt(this.getTerritories().size());
-		Territory from = this.getTerritories().get(i);
-		if (from.getTroops() == 1) return null;
-		int j = r.nextInt(this.getTerritories().size());
-		Territory to;
-		if(i != j){
-			to = this.getTerritories().get(j);
-		}
-		else{
-			j++;
-			j%=territories.size();
-			to = this.getTerritories().get(j);
-		}
-		if (manager.getBoard().hasExtendedConnection(from, to)) {
-			Object[] move = {from, to, r.nextInt(from.getTroops()-1)};
-			return move;
-		}
-		else return null;*/
-		
-		
+		//move troops from the second best staging area to the best staging area if they are connected
 		Territory to = bestStage();
 		Territory from = bestStage(to);
 		if (from == null) return null;
@@ -105,6 +92,8 @@ public class MediumAI extends ComputerPlayer{
 	}
 	
 	public Territory bestTarget(Territory t){
+		//selects the best target as the territory with the fewest number of troops connected to some staging 
+		//are t
 		int min = 1000;
 		Territory best = null;
 		ArrayList<Territory> connect = (ArrayList<Territory>) manager.getBoard().getConnections(t);
@@ -118,7 +107,7 @@ public class MediumAI extends ComputerPlayer{
 	}
 	
 	public Territory bestStage(Territory except){
-		//gets the territory with the most troops
+		//gets the territory with the most troops (excluding a single territory) from whihc the AI will attack
 		int max = 0;
 		Territory best = null;
 		for(int i = 0; i < territories.size(); i++){
@@ -137,10 +126,12 @@ public class MediumAI extends ComputerPlayer{
 	}
 	
 	public Territory bestStage(){
+		//returns the absolte best stage
 		return bestStage(null);
 	}
 	
 	public boolean continueAttack(int remaining, Object[] attack){
+		//medium AI will attack if it has at least two troops in a region
 		if(remaining < 2){
 			return false;
 		}
