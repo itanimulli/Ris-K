@@ -31,7 +31,7 @@ public class GameManager {
 	
 	public int getCardBonus() {
 		int reward = cardBonus[cardIndex];
-		if (cardIndex > cardBonus.length - 1) cardIndex++;
+		if (cardIndex < cardBonus.length - 1) cardIndex++;
 		return reward;
 	}
 

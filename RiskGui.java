@@ -123,7 +123,8 @@ public class RiskGui extends JFrame {
 				rg.rp.updateTerritory(rg.chosenTerritory);
 			}
 		}
-		while(gm.hasWon() == null){
+		int turnCount;
+		for(turnCount = 0; gm.hasWon() == null; turnCount++){
 			Player currentPlayer = gm.getPlayers().get(gm.getCurPlayer());
 			rg.chosenTerritory = null;
 			
@@ -291,7 +292,7 @@ public class RiskGui extends JFrame {
 									int numTroops = Integer.parseInt(JOptionPane.showInputDialog(rg, "How many troops would you like to attack with?", 1));
 									if (numTroops < 0) {
 										JOptionPane.showMessageDialog(rg, "You cannot attack with negative troops!");
-									} else if (numTroops > attackTerritory.getTroops()+1) {
+									} else if (numTroops > attackTerritory.getTroops()-1) {
 										JOptionPane.showMessageDialog(rg, "You do not have enough troops to perform that attack.");
 									} else if (numTroops > 0) {
 										Object[] attack = {attackTerritory, defendTerritory, numTroops};
@@ -418,5 +419,6 @@ public class RiskGui extends JFrame {
 			}
 		}
 		JOptionPane.showMessageDialog(rg, gm.hasWon() + " has won the game!");
+		rg.getGM().message("Total turns: " + turnCount);
 	}
 }

@@ -63,7 +63,7 @@ public class RiskPanel extends JPanel implements ActionListener{
 		}
 		territories = BoardImporter.getTerritories();
 		ArrayList<Point2D.Double> coords = BoardImporter.readCoords("boardCoordinates.txt");
-		for(int i=0; i<42; i++){
+		for(int i=0; i<territories.size(); i++){
 			int x = (int)(getWidth()*coords.get(i).x)-50;
 			int y = (int)(getHeight()*coords.get(i).y)-15;
 			tButtons[i].setText(territories.get(i).getName());

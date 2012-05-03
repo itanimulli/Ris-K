@@ -171,6 +171,9 @@ public abstract class Player {
 			cards.remove(cards.indexOf(2));
 			cards.remove(cards.indexOf(3));
 		}
+		if (reward != 0) {
+			manager.message(this+" has turned in cards and gained " + reward + " reinforcements.");
+		}
 		return reward;		
 	}
 
