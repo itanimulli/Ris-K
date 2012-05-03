@@ -41,13 +41,14 @@ public class RiskGui extends JFrame {
 		setChosenTerritory(gm.getBoard().get(t));
 	}
 	
+	//Driver
 	public static void main(String[] args){
 		
 		RiskGui rg = new RiskGui();
 		GameManager gm = rg.getGM();
 		boolean entered = false;
 		int numPlayers = 0;
-		while(!entered){
+		while(!entered){//get number of players
 			try{
 				numPlayers = Integer.parseInt(JOptionPane.showInputDialog(rg, "How many players will be playing in this game?"));
 				if(numPlayers < 2)
@@ -76,11 +77,15 @@ public class RiskGui extends JFrame {
 			gm.addPlayer(player);//add the player to the game manager
 		}
 		JOptionPane.showMessageDialog(rg, "Choose territories by pressing the button of an unoccupied territory");
-		gm.randomPlayer();
-		ArrayList<Territory> enableTerritories = new ArrayList<Territory>();
-		ArrayList<Territory> removeTerritories = new ArrayList<Territory>();
+		gm.randomPlayer();//Pick a random player to start choosing territories
+		ArrayList<Territory> enableTerritories = new ArrayList<Territory>();//Territories able to be selected
+		ArrayList<Territory> removeTerritories = new ArrayList<Territory>();//Territories that can't be selected
 		enableTerritories.addAll(gm.getBoard().getTerritories());
 		while(gm.getState() == GameManager.CHOOSING){//While the game is in the territory choosing state
+			/*This section of the code waits for the current player to select a territory and claims it for them if it's not
+			 * already claimed.
+			 * 
+			 */
 			Player currentPlayer = gm.nextPlayer();
 			rg.rp.enableTerritories(enableTerritories);
 			//Turn display prompt
@@ -99,7 +104,12 @@ public class RiskGui extends JFrame {
 			enableTerritories.remove(rg.chosenTerritory);
 			rg.rp.updateTerritory(rg.chosenTerritory);
 		}
-		while(gm.getState() == GameManager.FORTIFYING){
+		while(gm.getState() == GameManager.FORTIFYING){//While fortifying initially chosen territories
+			/*This section of code handles players doing the initial reinforcements. If the current player has zero remaining 
+			 * troops for initial reinforcements, it switches to normal game flow. Otherwise it waits for the player
+			 * to select a territory that they own and places one reinforcement there. Alerts them if they don't own the selected
+			 * territory
+			 */
 			enableTerritories.clear();
 			Player currentPlayer = gm.nextPlayer();
 			enableTerritories.addAll(currentPlayer.getTerritories());
@@ -124,30 +134,30 @@ public class RiskGui extends JFrame {
 			}
 		}
 		int turnCount;
-		for(turnCount = 0; gm.hasWon() == null; turnCount++){
+		for(turnCount = 0; gm.hasWon() == null; turnCount++){//Main part of the game, while the game isn't won
 			Player currentPlayer = gm.getPlayers().get(gm.getCurPlayer());
 			rg.chosenTerritory = null;
 			
-			if (gm.checkElimination()) continue;
+			if (gm.checkElimination()) continue;//If a player has been eliminated, loop again.
 			
 			switch (gm.getState()) {
-			case GameManager.REINFORCING:
+			case GameManager.REINFORCING: //For the reinforcing phase of the turn
 				enableTerritories.clear();
-				enableTerritories.addAll(currentPlayer.getTerritories());
+				enableTerritories.addAll(currentPlayer.getTerritories());//Only allow the player to select territories they own
 				rg.rp.enableTerritories(enableTerritories);
 				rg.rp.allowSkip(false);
-				rg.rp.allowCards(true);
+				rg.rp.allowCards(true);//Allow them to turn in cards
 				if (currentPlayer.resetSwitch()) {
 					currentPlayer.reset();
 					currentPlayer.resetSwitch(false);
 				}
-				if (currentPlayer.remainingReinforcements == 0) {
+				if (currentPlayer.remainingReinforcements == 0) {//Once they run out of reinforcing, switch to attack mode
 					currentPlayer.resetSwitch(true);
 					gm.setState(GameManager.ATTACKING);
 					break;
 				}
 				rg.rp.getPrompt().setText(currentPlayer+"'s turn, reinforcement phase (Remaining: "+currentPlayer.remainingReinforcements+")");
-				if (currentPlayer.getClass().getSuperclass().getName().endsWith("ComputerPlayer")) {
+				if (currentPlayer.getClass().getSuperclass().getName().endsWith("ComputerPlayer")) {//Do the appropriate methods if the player is a computer
 					if (currentPlayer.askTurnIn()) {
 						currentPlayer.remainingReinforcements += currentPlayer.turnInCards();
 						gm.setState(GameManager.REINFORCING);
@@ -166,8 +176,8 @@ public class RiskGui extends JFrame {
 					currentPlayer.resetSwitch(true);
 					currentPlayer.remainingReinforcements = 0;
 					gm.setState(GameManager.ATTACKING);
-				} else {
-					while (rg.chosenTerritory == null || rg.chosenTerritory.getOwner() != currentPlayer) {
+				} else {//If its a human player
+					while (rg.chosenTerritory == null || rg.chosenTerritory.getOwner() != currentPlayer) {//Wait for them to select a territory
 						if (rg.chosenTerritory != null) {
 							if (rg.chosenTerritory.getName().equals("Cards")) {
 								currentPlayer.remainingReinforcements += rg.chosenTerritory.getTroops();
@@ -179,7 +189,7 @@ public class RiskGui extends JFrame {
 						}
 						try {Thread.sleep(10);} catch (InterruptedException e) {}
 					}
-					try {
+					try {//Get the number of troops they want to place in the territory
 						int numTroops = Integer.parseInt(JOptionPane.showInputDialog(rg, "How many troops would you like to place?", 1));
 						if (numTroops < 0) {
 							JOptionPane.showMessageDialog(rg, "You cannot place negative reinforcements!");
@@ -196,15 +206,15 @@ public class RiskGui extends JFrame {
 				}
 				break;
 				
-			case GameManager.ATTACKING:
+			case GameManager.ATTACKING://For attacking
 				rg.rp.allowCards(false);
 				boolean getsCard = false;
-				if (!currentPlayer.hasConquered()) {
+				if (!currentPlayer.hasConquered()) {//If they conquered this turn, they get a card at the end of the turn
 					getsCard = true;
 				}
-				rg.rp.allowSkip(true);
+				rg.rp.allowSkip(true);//Let them choose to end their attacking phase
 				rg.rp.getPrompt().setText(currentPlayer+"'s turn, attack phase");
-				if (currentPlayer.getClass().getSuperclass().getName().endsWith("ComputerPlayer")) {
+				if (currentPlayer.getClass().getSuperclass().getName().endsWith("ComputerPlayer")) {//If the player is a computer, do the attacking methods
 					Object[] attack;
 					while ((attack = currentPlayer.attackProcess()) != null) {
 						Player defendPlayer = ((Territory)attack[1]).getOwner();
@@ -230,7 +240,7 @@ public class RiskGui extends JFrame {
 						}
 					}
 					gm.setState(GameManager.MOVING);
-				} else {
+				} else {//If the player is human
 					while (gm.getState() == GameManager.ATTACKING) {
 						rg.chosenTerritory = null;
 						enableTerritories.clear();
@@ -331,11 +341,11 @@ public class RiskGui extends JFrame {
 				}
 				break;
 				
-			case GameManager.MOVING:
+			case GameManager.MOVING://For moving phase
 				rg.rp.allowCards(false);
 				rg.rp.allowSkip(true);
 				rg.rp.getPrompt().setText(currentPlayer + "'s turn, movement phase");
-				if (currentPlayer.getClass().getSuperclass().getName().endsWith("ComputerPlayer")) {
+				if (currentPlayer.getClass().getSuperclass().getName().endsWith("ComputerPlayer")) {//If its a computer player
 					Object[] move = currentPlayer.moveProcess();
 					if (move == null) {
 						gm.nextPlayer();
@@ -352,7 +362,7 @@ public class RiskGui extends JFrame {
 					rg.rp.updateTerritory(destTerritory);
 					gm.nextPlayer();
 					gm.setState(GameManager.REINFORCING);
-				} else {
+				} else {//If it's a human player
 					while (gm.getState() == GameManager.MOVING) {
 						Territory sourceTerritory = null;
 						Territory destTerritory = null;
@@ -418,6 +428,7 @@ public class RiskGui extends JFrame {
 				}
 			}
 		}
+		//When someone has one display who won.
 		JOptionPane.showMessageDialog(rg, gm.hasWon() + " has won the game!");
 		rg.getGM().message("Total turns: " + turnCount);
 	}

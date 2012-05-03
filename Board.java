@@ -11,6 +11,7 @@ public class Board {
 		continents = cs;
 	}
 	
+	//Returns the territory identified by name.
 	public Territory get(String name) {
 		Iterator<Territory> iter = territories.iterator();
 		while(iter.hasNext()) {
@@ -21,10 +22,12 @@ public class Board {
 		return null;
 	}
 	
+	
 	public ArrayList<Continent> getContinents() {
 		return continents;
 	}
 	
+	//returns an arrayList of all the territories
 	public ArrayList<Territory> getTerritories() {
 		ArrayList<Territory> tList = new ArrayList<Territory>();
 		
@@ -49,10 +52,11 @@ public class Board {
 		return neighbors;
 	}
 	
+	//Returns if two territories are connected
 	public boolean areConnected(Territory t1, Territory t2) {
 		return territories.containsEdge(t1, t2);
 	}
-	
+	//Used to determine if two territories are connected by other territories
 	private boolean hasExtendedConnectionRecurse(Territory t, Territory dest) {
 		if (t == dest) return true;
 		Iterator<Territory> neighbors = territories.neighbors(t);
@@ -72,6 +76,7 @@ public class Board {
 		return false;
 	}
 	
+	//returns if two territories have an extended connection by calling the recursive function
 	public boolean hasExtendedConnection(Territory t, Territory dest) {
 		territories.reset();
 		return hasExtendedConnectionRecurse(t, dest);

@@ -1,3 +1,7 @@
+/*This class is a utility class, used for getting the coordinates of the territories of a map. It's important to be aware of the 
+ * fact the the territories must be clicked in the same order they are listed in the board.txt file
+ * 
+ */
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.ImageObserver;
@@ -32,7 +36,7 @@ public class BoardCoordinates extends JPanel {
 		page.drawImage(background, 0, 0, this.getWidth(), this.getHeight(),null);
 	}
 	
-	
+	//Listener for printing out the fraction for where the user clicked.
 	private class CoordListener extends MouseAdapter{
 		public void mousePressed(MouseEvent event){
 			System.out.println(event.getX()/600.0 +  " " + event.getY()/400.0);

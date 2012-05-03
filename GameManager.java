@@ -29,6 +29,7 @@ public class GameManager {
 		cardIndex = 0;
 	}
 	
+	//Returns how much a player gets from turning in cards
 	public int getCardBonus() {
 		int reward = cardBonus[cardIndex];
 		if (cardIndex < cardBonus.length - 1) cardIndex++;
@@ -121,6 +122,8 @@ public class GameManager {
 		return players.get(curPlayer);
 	}
 	
+	//Handles the initial state of reinforcing by adding the territory to the player's owned territories, and reinforcing it.
+	//If there are more territories that need to be initially reinforced, end this call, if not set the state to fortifying
 	public void doInitReinforce(Player p, Territory t) {
 		p.addTerritory(t);
 		t.reinforce();
@@ -131,6 +134,7 @@ public class GameManager {
 		setState(FORTIFYING);
 	}
 	
+	//This method calculates the number of troops a player can use to reinforce the territories he initially gets
 	public int remainingFortifications(Player p) {
 		int startTroops = 50 - 5*players.size();
 		return startTroops - p.numTroops();
@@ -184,6 +188,7 @@ public class GameManager {
 		}
 	}
 	
+	//This method returns how many troops were lost in an attack, and prints who won.
 	public int processAttack(Player p, Object[] attack) {
 		Territory attackingTerritory = (Territory)attack[0];
 		Territory defendingTerritory = (Territory)attack[1];
@@ -212,10 +217,12 @@ public class GameManager {
 
 	}
 	
+	//Picks a random player. Is used to determine who gets to pick the first territory.
 	public void randomPlayer() {
 		curPlayer = (int)(players.size()*Math.random());
 	}
 	
+	//Returns the bonus a player gets for controlling continents
 	public int calculateContinentBonus(Player p) {
 		int totalBonus = 0;
 		ArrayList<Continent> continents = board.getContinents();
@@ -226,6 +233,7 @@ public class GameManager {
 		return totalBonus;
 	}
 	
+	//Returns if a player has been eliminated by checking if they have no territories.
 	public boolean checkElimination() {
 		if (players.get(curPlayer).getTerritories().size() == 0) {
 			players.remove(players.get(curPlayer));

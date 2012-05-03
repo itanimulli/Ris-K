@@ -1,3 +1,6 @@
+/*This class is largely ununsed.
+ * 
+ */
 import java.util.*;
 
 public class HumanPlayer extends Player {
@@ -162,6 +165,12 @@ public class HumanPlayer extends Player {
 				}
 			}
 		}
+	}
+
+	@Override
+	public boolean continueAttack(int remaining, Object[] attack) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 }

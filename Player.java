@@ -267,18 +267,23 @@ public abstract class Player {
 		return troops;
 	}
 	
+	//This method encompasses the fortifying process, and is to be implemented in the subclasses of Player.
 	public abstract Territory fortifyProcess();
 	
+	//This method determines if the player will continue their attack, and is to be implemented in the subclasses of Player
 	public abstract boolean continueAttack(int remaining, Object[] attack);
 	
+	//Sets the value for the resetSwitch
 	public void resetSwitch(boolean value) {
 		resetSwitch = value;
 	}
 	
+	//returns the value for the resetSwitch
 	public boolean resetSwitch() {
 		return resetSwitch;
 	}
 	
+	//Starts a turn by giving the player their reinforcements, and setting hasConquered to false
 	public void reset() {
 		remainingReinforcements += (int)Math.max(Math.floor(territories.size()/3), 3);
 		remainingReinforcements += manager.calculateContinentBonus(this);
