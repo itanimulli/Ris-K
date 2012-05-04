@@ -10,18 +10,25 @@ import javax.swing.*;
 
 public class RiskPanel extends JPanel implements ActionListener{
 	
+	//The board image
 	private Image background;
+	//Button to skip the current step
 	private JButton skipButton;
+	//A button to to display a dialog containing the current player's cards
 	private JButton cardsButton;
+	//Buttons for the territories
 	private JButton[] tButtons;
+	//Label for the territories
 	private JLabel[] tLabels;
-	private JLabel cards = new JLabel();
+	//Labels that show the state of the game
 	private JLabel state = new JLabel();
 	private JLabel dice = new JLabel();
 	private JLabel rRein = new JLabel();
 	private JLabel prompt = new JLabel();
 	
+	//A reference to the RiskGui that contains this panel
 	private RiskGui gui;
+	//The territories of the board
 	private ArrayList<Territory> territories;
 
 	
@@ -29,8 +36,10 @@ public class RiskPanel extends JPanel implements ActionListener{
 		this.gui = gui;
 		
 		setLayout(null);
+		//Size the window
 		setPreferredSize(new Dimension(1366,700));
 		setSize(1366,700);
+		//Read in the board image
 		try{
 			ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 			InputStream input = classLoader.getResourceAsStream("RiskBoard.png");
@@ -41,6 +50,7 @@ public class RiskPanel extends JPanel implements ActionListener{
 			System.out.println(e.getStackTrace());
 		}
 		repaint();
+		//Initialize the buttons and add them to the screen
 		skipButton = new JButton(">>>");
 		skipButton.addActionListener(this);
 		int skipx = (int)(getWidth()-60);
@@ -78,12 +88,11 @@ public class RiskPanel extends JPanel implements ActionListener{
 			tLabels[i].setBackground(Color.white);
 			tLabels[i].setBounds(lx, ly, 90, 15);
 		}
-		add(cards);
+		//Add the state labels
 		add(state);
 		add(dice);
 		add(rRein);
 		add(prompt);
-		cards.setBounds(10,400,200,50);
 		state.setBounds(10,450,200,50);
 		dice.setBounds(10,500,200,50);
 		rRein.setBounds(10,550,200,50);
@@ -92,14 +101,6 @@ public class RiskPanel extends JPanel implements ActionListener{
 	
 	public void paintComponent(Graphics g){
 		g.drawImage(background, 0, 0, getWidth(), getHeight(), null);
-	}
-
-	public JLabel getCards() {
-		return cards;
-	}
-
-	public void setCards(JLabel cards) {
-		this.cards = cards;
 	}
 
 	public JLabel getState() {
@@ -134,16 +135,21 @@ public class RiskPanel extends JPanel implements ActionListener{
 		this.prompt = prompt;
 	}
 	
+	//Updates the label of a territory to reflect the current owner and number of troops.
 	public void updateTerritory(Territory t) {
 		int i = territories.indexOf(t);
 		tLabels[i].setText(t.getOwner()+":"+t.getTroops());
 		tLabels[i].setBackground(RiskGui.PLAYERCOLORS[gui.getGM().getPlayers().indexOf(t.getOwner())]);
 	}
 	
+	//The actionPerformed method.
 	public void actionPerformed(ActionEvent e) {
+		//If the skip button is clicked, relay this information back to the GUI
 		if (e.getSource() == skipButton) {
 			gui.setChosenTerritory(new Territory("Skip"));
-		} else if (e.getSource() == cardsButton) {
+		} 
+		//If the cards button was clicked, display a dialog showing the cards held
+		else if (e.getSource() == cardsButton) {
 			Player currentPlayer = gui.getGM().getPlayers().get(gui.getGM().getCurPlayer());
 			String message = "You are holding the following cards: \n\n";
 			ArrayList<Integer> cards = currentPlayer.getCards();
@@ -151,6 +157,7 @@ public class RiskPanel extends JPanel implements ActionListener{
 				message += cards.get(i)+"\t";
 			}
 			Object[] options = {"Close", "Turn In"};
+			//Offer the option of turning in cards
 			if (JOptionPane.showOptionDialog(gui, message, "Cards", JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null,  options, options[0]) == 1) {
 				int reward;
 				if ((reward = currentPlayer.turnInCards()) == 0) {
@@ -161,7 +168,9 @@ public class RiskPanel extends JPanel implements ActionListener{
 					gui.setChosenTerritory(nT);
 				}
 			}
-		} else if (e.getSource().getClass().getName().endsWith("JButton")) {
+		} 
+		//If a territory is clicked
+		else if (e.getSource().getClass().getName().endsWith("JButton")) {
 			JButton button = (JButton)e.getSource();
 			gui.setChosenTerritory(button.getText());
 		}
